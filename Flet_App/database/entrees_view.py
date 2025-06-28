@@ -31,7 +31,7 @@ def entree_view(page: ft.Page):
         ]
         page.update()
 
-    # 📥 Charger les dépenses dans le tableau
+    # 📥 Charger les entrees dans le tableau
     def charger():
         data = get_entrees(token, search=search_input.value, categorie_name=categorie_filter.value)
         datatable.rows.clear()
@@ -49,7 +49,7 @@ def entree_view(page: ft.Page):
                         ft.DataCell(ft.Text(op["description"])),
                     ])
                 )
-
+                
         page.update()
 
     # Initialisation
@@ -59,10 +59,12 @@ def entree_view(page: ft.Page):
     return ft.Column(
         
         controls=[
-            ft.Text("📊 Entrées enregistrées", size=24, weight="bold"),
+            ft.Text("📊 Entrées enregistrées", size=30, weight="bold"),
+            ft.Divider(),
             ft.Row([search_input, categorie_filter]),
             message,
             datatable
         ],
-        scroll=ft.ScrollMode.AUTO
+        scroll=ft.ScrollMode.AUTO,
+        width=800
     )

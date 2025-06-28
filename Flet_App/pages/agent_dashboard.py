@@ -23,8 +23,8 @@ def agentdashboard(page: Page):
                 return Text("❌ Impossible de charger les statistiques.", color="red")
 
             cards = Row([
-                stat_card("💰 Entrees", f"{stats['resume'].get('total_entrees',0)} FC", color="green", icon=Icons.TRENDING_UP),
-                stat_card("💸 Dépenses", f"{stats['resume'].get('total_depenses',0)} FC", color="red", icon=Icons.TRENDING_DOWN),
+                stat_card("💰 Entrees", f"{stats['resume'].get('total_entrees',0)} $", color="green", icon=Icons.TRENDING_UP),
+                stat_card("💸 Dépenses", f"{stats['resume'].get('total_depenses',0)} $", color="red", icon=Icons.TRENDING_DOWN),
                 stat_card("Nb Entrees", stats['resume'].get('entrees',0), color="teal", icon=Icons.ADD_CHART),
                 stat_card("Nb Dépenses", stats['resume'].get('depenses',0), color="orange", icon=Icons.REMOVE_CIRCLE)
             ],width=page.width, wrap=True, spacing=10,alignment=MainAxisAlignment.SPACE_BETWEEN)
@@ -43,17 +43,18 @@ def agentdashboard(page: Page):
                         DataCell(Text(op["date"])),
                         DataCell(Text(op["type"])),
                         DataCell(Text(op["categorie_nom"])),
-                        DataCell(Text(f"{op['montant']} FC")),
+                        DataCell(Text(f"{op['montant']} $")),
                         DataCell(Text(op['description'])),
                     ]) for op in stats.get("dernieres")
                 ]
             )
 
             return Column([
-                Text("📊 Statistiques personnelles", size=22, weight="bold"),
+                Text("📊 Statistiques personnelles", size=30, weight="bold"),
+                Divider(),
                 cards,
                 Divider(),
-                Text("📋 Dernières opérations enregistrées", size=22),
+                Text("📋 Dernières opérations enregistrées", size=30),
                 tableau
             ], spacing=20,
                 alignment=MainAxisAlignment.START,
@@ -64,14 +65,18 @@ def agentdashboard(page: Page):
     def get_depenses_view():
             return Container(
                 content=Row([depenses_view(page),Operations(page)],
-                            vertical_alignment=CrossAxisAlignment.STRETCH,),
+                            vertical_alignment=CrossAxisAlignment.STRETCH,
+                            alignment=MainAxisAlignment.SPACE_BETWEEN
+                            ),
                 padding=Padding(20,0,0,0),
                 alignment=alignment.center
             )
     def get_recettes_view():
             return Container(
                 content=Row([entree_view(page),Operations(page)],
-                            vertical_alignment=CrossAxisAlignment.STRETCH),
+                            vertical_alignment=CrossAxisAlignment.STRETCH,
+                            alignment=MainAxisAlignment.SPACE_BETWEEN
+                            ),
                 padding=Padding(20,0,0,0),
                 alignment=alignment.center
             )
@@ -108,7 +113,7 @@ def agentdashboard(page: Page):
                         destinations=[
                             NavigationRailDestination(icon=Icon(Icons.DASHBOARD, color="white"), selected_icon=Icons.DASHBOARD, label_content=Text("Accueil", font_family="arial", size=16, color="white")),
                             NavigationRailDestination(icon=Icon(Icons.MONEY_OFF,color="white"), selected_icon=Icons.MONEY_OFF, label_content=Text("Dépenses", font_family="arial", size=16, color="white")),
-                            NavigationRailDestination(icon=Icon(Icons.MONEY, color="white"), selected_icon=Icons.MONEY, label_content=Text("Entrée s", font_family="arial", size=16, color="white")),
+                            NavigationRailDestination(icon=Icon(Icons.MONEY, color="white"), selected_icon=Icons.MONEY, label_content=Text("Entrées", font_family="arial", size=16, color="white")),
                            
                         ],
                     ),

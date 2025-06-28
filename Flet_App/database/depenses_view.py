@@ -49,7 +49,6 @@ def depenses_view(page: ft.Page):
                         ft.DataCell(ft.Text(op["description"])),
                     ])
                 )
-
         page.update()
 
     # Initialisation
@@ -59,10 +58,12 @@ def depenses_view(page: ft.Page):
     return ft.Column(
         
         controls=[
-            ft.Text("📊 Dépenses enregistrées", size=24, weight="bold"),
+            ft.Text("📊 Dépenses enregistrées", size=30, weight="bold"),
+            ft.Divider(),
             ft.Row([search_input, categorie_filter]),
             message,
             datatable
         ],
-        scroll=ft.ScrollMode.AUTO
+        scroll=ft.ScrollMode.AUTO,
+        width=800,
     )
