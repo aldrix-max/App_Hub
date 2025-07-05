@@ -7,32 +7,62 @@ class Agent(models.Model):
     Associe des informations supplémentaires à un utilisateur (User),
     comme son rôle ou son service.
     """
+    # Définition des choix possibles pour le rôle
     ROLE_CHOICES = [
         ('ADMIN', 'Administrateur'),
         ('AGENT', 'Agent'),
         ('AUTRE', 'Autre'),
     ]
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name="Utilisateur", default="")
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, verbose_name="Rôle de l'agent")
-    service = models.CharField(max_length=100, blank=True, verbose_name="Service ou département")
+    # Relation un-à-un avec le modèle User de Django
+    user = models.OneToOneField(
+        User, 
+        on_delete=models.CASCADE,  # Si l'User est supprimé, l'Agent aussi
+        verbose_name="Utilisateur", 
+        default=""
+    )
+    
+    # Champ pour stocker le rôle avec choix prédéfinis
+    role = models.CharField(
+        max_length=20, 
+        choices=ROLE_CHOICES, 
+        verbose_name="Rôle de l'agent"
+    )
+    
+    # Champ facultatif pour le service/département
+    service = models.CharField(
+        max_length=100, 
+        blank=True,  # Peut être vide
+        verbose_name="Service ou département"
+    )
 
     def __str__(self):
-        return f"{self.user.username} ({self.get_role_display()})"  # Représentation lisible
+        """Représentation lisible de l'objet (ex: dans l'admin)"""
+        return f"{self.user.username} ({self.get_role_display()})"
 
     class Meta:
+        """Métadonnées pour l'administration"""
         verbose_name = "Agent"  # Nom singulier dans l'admin
         verbose_name_plural = "Agents"  # Nom pluriel dans l'admin
-        ordering = ['role', 'user']  # Tri par rôle puis par utilisateur
+        ordering = ['role', 'user']  # Tri par défaut
 
-# Modèle Categorie : catégorise les opérations financières
 class Categorie(models.Model):
+    """Catégorise les opérations financières (Dépenses/Entrées)"""
+    
+    # Types possibles de catégories
     TYPE_CHOICES = [
         ("DEPENSE", "Dépense"),
         ("ENTREE", "Entrée de fonds"),
     ]
 
-    type = models.CharField(max_length=10, choices=TYPE_CHOICES, default="DEPENSE")
+    # Type de la catégorie (dépense ou entrée)
+    type = models.CharField(
+        max_length=10, 
+        choices=TYPE_CHOICES, 
+        default="DEPENSE"
+    )
+    
+    # Nom de la catégorie
     nom = models.CharField(max_length=100)
 
     class Meta:
@@ -42,28 +72,50 @@ class Categorie(models.Model):
     def __str__(self):
         return f"{self.nom} ({self.type})"
 
-
 class Transaction(models.Model):
-    type = models.CharField(max_length=10, choices=Categorie.TYPE_CHOICES)
-    montant = models.DecimalField(max_digits=10, decimal_places=2)
-    date = models.DateField()
-    description = models.TextField(blank=True)
-    categorie = models.ForeignKey(Categorie, on_delete=models.CASCADE)
-    utilisateur = models.ForeignKey(User, on_delete=models.CASCADE)
+    """Enregistrement d'une opération financière"""
+    
+    # Type (dépense ou entrée)
+    type = models.CharField(
+        max_length=10, 
+        choices=Categorie.TYPE_CHOICES
+    )
+    
+    # Montant avec précision décimale
+    montant = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2
+    )
+    
+    date = models.DateField()  # Date de la transaction
+    description = models.TextField(blank=True)  # Champ optionnel
+    
+    # Lien vers la catégorie
+    categorie = models.ForeignKey(
+        Categorie, 
+        on_delete=models.CASCADE  # Si catégorie supprimée, transaction aussi
+    )
+    
+    # Utilisateur associé
+    utilisateur = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE  # Si user supprimé, transactions aussi
+    )
 
     class Meta:
-        ordering = ['-date']
+        ordering = ['-date']  # Tri par date décroissante
         verbose_name = "Transaction"
         verbose_name_plural = "Transactions"
 
     def __str__(self):
         return f"{self.type} - {self.montant} FC - {self.date}"
-
-
-class Budget(models.Model):
+#=====================================
+# DEFINITION DU BUDGET
+#=====================================
+class BudgetMensuel(models.Model):
     utilisateur = models.ForeignKey(User, on_delete=models.CASCADE)
-    mois = models.DateField(help_text="Utiliser le 1er jour du mois, ex: 2025-06-01")
-    montant_max = models.DecimalField(max_digits=10, decimal_places=2)
+    mois = models.CharField(max_length=7)  # "YYYY-MM"
+    montant_total = models.DecimalField(max_digits=12, decimal_places=2)
 
     class Meta:
         unique_together = ('utilisateur', 'mois')
@@ -71,4 +123,4 @@ class Budget(models.Model):
         verbose_name_plural = "Budgets Mensuels"
 
     def __str__(self):
-        return f"{self.utilisateur.username} - {self.mois.strftime('%B %Y')} - {self.montant_max} FC"
+        return f"{self.utilisateur.username} - {self.mois} : {self.montant_total} FCFA"

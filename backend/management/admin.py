@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Agent, Categorie, Transaction, Budget
+from .models import *
 
 # Configuration de l'interface admin pour le modèle Agent
 class ProfilUtilisateurAdmin(admin.ModelAdmin):
@@ -11,4 +11,4 @@ class ProfilUtilisateurAdmin(admin.ModelAdmin):
 admin.site.register(Agent, ProfilUtilisateurAdmin)  # Agent avec configuration personnalisée
 admin.site.register(Categorie)  # Catégorie avec configuration par défaut
 admin.site.register(Transaction)  # Transaction avec configuration par défaut
-admin.site.register(Budget)  # Opération avec configuration par défaut
+admin.site.register(BudgetMensuel)

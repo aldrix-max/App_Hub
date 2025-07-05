@@ -12,9 +12,9 @@ def login_view(page: Page):
     
     
     username = TextField(label="Nom complet",label_style=TextStyle(italic=True, color="#2563eb"),border_radius=8,width=350, filled=True, bgcolor="white", border_color="#2563eb",
-                             focused_border_color="#2563eb",shift_enter=True, )
+                            color="black")
     password = TextField(label="Mot de passe",label_style=TextStyle(italic=True, color="#2563eb"), password=True,width=350, can_reveal_password=True,shift_enter=True,
-                             border_radius=8, filled=True, bgcolor="white", border_color="#2563eb",)
+                             border_radius=8, filled=True, bgcolor="white", border_color="#2563eb",color="black")
     message = Text("")  # Pour afficher les messages d'erreur/succès
 
     def on_login(e):
