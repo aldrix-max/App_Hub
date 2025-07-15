@@ -99,7 +99,9 @@ def budget_resume_view(page: Page):
                             Text(f"€{solde:.2f}", weight="bold", color=Colors.GREEN_600)
                         ], alignment=MainAxisAlignment.SPACE_BETWEEN),
                         # Barre de progression du budget global
-                        ProgressBar(value=progress, width=300, color=Colors.INDIGO_600, height=5, bgcolor="blue"),
+                        ProgressBar(value=progress, width=300,color=Colors.RED_600 if progress > 0.9 else 
+                                                Colors.ORANGE if progress > 0.7 else 
+                                                Colors.GREEN_600, height=5, bgcolor=Colors.INDIGO_600),
                         # Affiche l'alerte si besoin
                         alerte if alerte else Container(),
                     ],

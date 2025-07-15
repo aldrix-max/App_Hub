@@ -1,6 +1,6 @@
 import flet as ft
 from flet import *
-from database.api import get_evolution_data
+from database.api import *
 import matplotlib
 matplotlib.use('Agg')  # Utilise le backend non interactif pour générer des images
 import matplotlib.pyplot as plt
@@ -140,3 +140,129 @@ def graphique_evolution_view(page: ft.Page):
             shadow=BoxShadow(blur_radius=10, color=Colors.GREY_300)
         
             )
+
+def graphique_global_view(page: ft.Page):
+    token = page.session.get("token")
+    if not token:
+        return Text("Non authentifié", color="red")
+
+    # Filtres
+    annee_dropdown = Dropdown(
+        label="Année",
+        color="black",
+        label_style=TextStyle(color="black", weight="bold", size=16),
+        prefix_icon=Icon(Icons.DATE_RANGE, color=Colors.BLACK),
+        options=[dropdown.Option(str(y)) for y in range(2025, 2030)],
+        value="2025",
+        width=200
+    )
+    
+    type_radio = RadioGroup(
+        content=Row([
+            Radio(value="DEPENSE", label="Dépenses", 
+                 label_style=TextStyle(color=Colors.GREY, size=16), active_color=Colors.BLACK), 
+            Radio(value="ENTREE", label="Entrées", 
+                label_style=TextStyle(color=Colors.GREY, size=16), active_color=Colors.BLACK)
+        ]),
+        value="DEPENSE"
+    )
+
+    chart_container = Container(
+        content=ProgressRing(),
+        height=400,
+        alignment=alignment.center
+    )
+
+    def update_chart(e=None):
+        try:
+            annee = annee_dropdown.value
+            type_op = type_radio.value
+            data = get_global_evolution_data(token, type_op, annee) or {}
+            
+            if not data or not data.get('par_categorie'):
+                chart_container.content = Text("Aucune donnée disponible", color="red")
+                page.update()
+                return
+
+            # Préparation des données pour barres empilées
+            months = sorted(data['par_categorie'].keys())
+            categories = set()
+            for month in months:
+                categories.update(data['par_categorie'][month].keys())
+            categories = sorted(categories)
+
+            # Pour chaque catégorie, liste des montants par mois
+            values_per_cat = {cat: [data['par_categorie'][m].get(cat, 0) for m in months] 
+                            for cat in categories}
+
+            # --- Génération du graphique matplotlib ---
+            plt.style.use('ggplot')
+            fig, ax = plt.subplots(figsize=(12, 6))
+            bottom = [0] * len(months)  # Pour empiler les barres
+            color_map = plt.cm.get_cmap('tab20', len(categories))  # Palette de couleurs
+
+            bars = []
+            for idx, cat in enumerate(categories):
+                vals = values_per_cat[cat]
+                # Trace la barre pour chaque catégorie, empilée sur les précédentes
+                bar = ax.bar(
+                    months, vals, bottom=bottom, label=cat,
+                    color=color_map(idx)
+                )
+                # Affiche le montant sur chaque segment de barre
+                ax.bar_label(
+                    bar,
+                    labels=[f"{v:.0f}" if v > 0 else "" for v in vals],
+                    label_type="center",
+                    fontsize=9,
+                    color="black"
+                )
+                bars.append(bar)
+                # Met à jour la base pour la prochaine catégorie (empilement)
+                bottom = [b + v for b, v in zip(bottom, vals)]
+
+            # Mise en forme du graphique
+            ax.set_title(f"Évolution Globale des {'Dépenses' if type_op=='DEPENSE' else 'Entrées'} ({annee})")
+            ax.set_xlabel("Mois")
+            ax.set_ylabel("Montant")
+            ax.legend(bbox_to_anchor=(1.05, 1),loc='upper left')
+            plt.tight_layout()
+
+            # Convertit le graphique en image base64
+            img_buf = BytesIO()
+            plt.savefig(img_buf, format='png', bbox_inches='tight')
+            plt.close()
+            img_buf.seek(0)
+            chart_base64 = base64.b64encode(img_buf.getvalue()).decode()
+            
+            chart_container.content = Image(
+                src_base64=chart_base64,
+                width=800,
+                height=500,
+                fit=ImageFit.CONTAIN
+            )
+            page.update()
+            
+        except Exception as e:
+            print("Erreur:", traceback.format_exc())
+            chart_container.content = Text(f"Erreur: {str(e)}", color="red")
+            page.update()
+
+    annee_dropdown.on_change = update_chart
+    type_radio.on_change = update_chart
+    update_chart()
+
+    return Container(
+        content=Column([
+            Row([
+                Text("Évolution Globale des Opérations", size=22, weight="bold", color="black"),
+                annee_dropdown,
+                type_radio
+            ], spacing=20, alignment=MainAxisAlignment.SPACE_BETWEEN),
+            chart_container
+        ], spacing=20),
+        padding=20,
+        bgcolor=Colors.WHITE,
+        border_radius=10,
+        shadow=BoxShadow(blur_radius=10, color=Colors.GREY_300)
+    )

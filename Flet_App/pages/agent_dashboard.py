@@ -6,6 +6,7 @@ from database.depenses_view import depenses_view
 from database.entrees_view import entree_view
 from database.budget import *
 from database.transactions import *
+from database.pdf import *
 from components.charts import *
 from datetime import datetime
 
@@ -34,8 +35,8 @@ def agentdashboard(page: Page):
             cards = Row([
                 stat_card("Entrees", f"{stats['resume'].get('total_entrees',0)} $", icon=Icons.ARROW_CIRCLE_UP_ROUNDED, color=Colors.GREEN_600),
                 stat_card("Dépenses", f"{stats['resume'].get('total_depenses',0)} $", icon=Icons.ARROW_CIRCLE_DOWN_ROUNDED, color=Colors.RED_600),
-                stat_card("Nb Entrees", stats['resume'].get('entrees',0), icon=Icons.ADD_CHART, color=Colors.INDIGO_100),
-                stat_card("Nb Dépenses", stats['resume'].get('depenses',0), icon=Icons.REMOVE_CIRCLE)
+                stat_card("Nb Entrees", stats['resume'].get('entrees',0), icon=Icons.ADD_CHART, color=Colors.INDIGO_600),
+                stat_card("Nb Dépenses", stats['resume'].get('depenses',0), icon=Icons.REMOVE_CIRCLE, color=Colors.INDIGO_600)
             ], width=page.width, wrap=True, spacing=10, alignment=MainAxisAlignment.SPACE_BETWEEN)
 
             # Tableau des dernières opérations
@@ -140,10 +141,17 @@ def agentdashboard(page: Page):
             expand=True,  # Prend toute la hauteur disponible
             spacing=20  # Espace entre les éléments de la colonne
         )
-    # Vue Recettes
+    # Vue budget
     def get_budget_view():
         return Container(
             content=budget_resume_view(page),
+            padding=Padding(20, 0, 0, 0),
+            alignment=alignment.center
+        )
+    # vue de rapport
+    def get_rapport_view():
+        return Container(
+            content=rapport_view(page),
             padding=Padding(20, 0, 0, 0),
             alignment=alignment.center
         )
@@ -153,6 +161,7 @@ def agentdashboard(page: Page):
         0: get_accueil_view,
         1: get_transactions_view,
         2: get_budget_view,
+        3: get_rapport_view,
     }
 
     # Gestion de la navigation
@@ -175,7 +184,7 @@ def agentdashboard(page: Page):
                         TextButton("Tableau de bord", on_click=lambda e: navigate(e, 0), style=ButtonStyle(color="white")),
                         TextButton("Transactions", on_click=lambda e: navigate(e, 1), style=ButtonStyle(color="white")),
                         TextButton("Budgétisation", on_click=lambda e: navigate(e, 2), style=ButtonStyle(color="white")),
-                        TextButton("rapport", style=ButtonStyle(color="white")),
+                        TextButton("rapport",on_click=lambda e: navigate(e, 3) ,style=ButtonStyle(color="white")),
                         Container(width=400),
                         ElevatedButton(
                             "Déconnexion",

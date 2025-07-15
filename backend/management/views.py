@@ -12,6 +12,10 @@ from rest_framework.decorators import api_view, permission_classes
 from collections import defaultdict
 from rest_framework import status
 from django.db.models import Q
+from django.http import FileResponse
+from .reportlab import *
+from django.db.models.functions import Concat
+from django.db.models import Value, Sum
 
 
 # =========================
@@ -338,4 +342,220 @@ def budget_resume(request):
         "depenses_totales": depenses_totales,
         "solde": solde,
         "categories": categories_stats
+    })
+    
+# =========================
+# EXPORT PDF DES TRANSACTIONS
+# =========================
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def export_pdf_operations(request):
+    mois = request.query_params.get('mois')  # ex: 2025-07
+    type_rapport = request.query_params.get('type', 'liste')  # "liste" ou "resume"
+
+    if not mois:
+        return Response({"error": "Le paramètre 'mois' est requis"}, status=400)
+
+    try:
+        date_obj = datetime.strptime(mois, "%Y-%m")
+    except ValueError:
+        return Response({"error": "Format de date invalide. Utilisez AAAA-MM"}, status=400)
+
+    if type_rapport == "resume":
+        buffer = generate_monthly_summary_pdf(mois, request.user.username)
+        return FileResponse(buffer, as_attachment=True, filename=f"resume_{mois}.pdf")
+
+    operations = Transaction.objects.filter(
+        date__year=date_obj.year,
+        date__month=date_obj.month
+    ).select_related("categorie", "utilisateur")
+
+    data = []
+    for op in operations:
+        data.append({
+            "date": op.date.strftime("%Y-%m-%d"),
+            "type": op.categorie.type,
+            "categorie": op.categorie.nom,
+            "montant": float(op.montant),
+            "description": op.description or "",
+            "agent_nom": op.utilisateur.username,
+        })
+
+    buffer = generate_monthly_summary_pdf(data, title=f"Rapport des opérations – {mois}")
+    return FileResponse(buffer, as_attachment=True, filename=f"rapport_{mois}.pdf")
+
+
+#=====================================
+#=====================================
+# SECTION ADMINISTRATION
+#=====================================
+#=====================================
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def global_stats(request):
+    """Statistiques consolidées pour l'admin"""
+    if not request.user.is_superuser:
+        return Response({"error": "Accès non autorisé"}, status=403)
+    
+    # Calcul des statistiques globales
+    stats = {
+        "total_entrees": float(Transaction.objects.filter(type="ENTREE")
+                         .aggregate(Sum('montant'))['montant__sum'] or 0),
+        "total_depenses": float(Transaction.objects.filter(type="DEPENSE")
+                          .aggregate(Sum('montant'))['montant__sum'] or 0),
+        "count_entrees": Transaction.objects.filter(type="ENTREE").count(),
+        "count_depenses": Transaction.objects.filter(type="DEPENSE").count(),
+    }
+
+    # Dernières opérations avec le nom de l'agent
+    dernieres_ops = Transaction.objects.all() \
+    .select_related('utilisateur', 'categorie') \
+    .order_by('-date')[:10] \
+    .annotate(
+        agent_name=Concat('utilisateur__first_name', Value(' '), 
+                        'utilisateur__last_name')
+    ) \
+    .values(
+        'id', 'date', 'type', 'montant', 'description',
+        'categorie__nom',
+        'agent_name'
+    )
+    
+    stats["dernieres_operations"] = list(dernieres_ops)
+    
+    return Response(stats)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def global_transactions(request):
+    """Liste toutes les transactions avec filtres"""
+    if not request.user.is_superuser:
+        return Response({"error": "Accès non autorisé"}, status=403)
+    
+    # Filtres
+    type_op = request.GET.get("type")
+    agent_id = request.GET.get("agent_id")
+    search = request.GET.get("search")
+    date = request.GET.get("date")
+
+    qs = Transaction.objects.all().select_related('utilisateur', 'categorie')
+
+    if type_op in ["DEPENSE", "ENTREE"]:
+        qs = qs.filter(type=type_op)
+    if agent_id:
+        qs = qs.filter(utilisateur__agent__id=agent_id)
+    if search:
+        qs = qs.filter(
+            Q(description__icontains=search) | 
+            Q(categorie__nom__icontains=search) |
+            Q(utilisateur__username__icontains=search) |
+            Q(utilisateur__first_name__icontains=search) |
+            Q(utilisateur__last_name__icontains=search) |
+            Q(id__icontains=search)
+        )
+    if date:
+        if len(date) == 10:  # Format YYYY-MM-DD
+            qs = qs.filter(date=date)
+        elif len(date) == 7:  # Format YYYY-MM
+            qs = qs.filter(date__year=date[:4], date__month=date[5:7])
+
+    transactions = qs.order_by('-date').values(
+        'id', 'date', 'type', 'montant', 'description',
+        'categorie__nom',
+        agent_name=Concat('utilisateur__first_name', Value(' '), 
+                         'utilisateur__last_name')
+    )
+    return Response(list(transactions))
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def all_agents(request):
+    """Liste tous les agents"""
+    if not request.user.is_superuser:
+        return Response({"error": "Accès non autorisé"}, status=403)
+    
+    agents = Agent.objects.all().select_related('user').values(
+        'id', 'role',
+        name=Concat('user__first_name', Value(' '), 'user__last_name')
+    )
+    return Response(list(agents))
+
+from decimal import Decimal
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def budget_global(request):
+    if not request.user.is_superuser:
+        return Response({"error": "Accès non autorisé"}, status=403)
+    
+    mois = request.GET.get("mois")
+    agents = Agent.objects.filter(role="AGENT").select_related('user')
+    budgets_data = []
+    
+    for agent in agents:
+        budgets_query = BudgetMensuel.objects.filter(utilisateur=agent.user)
+        if mois:
+            budgets_query = budgets_query.filter(mois=mois)
+        
+        for budget in budgets_query.order_by('-mois'):
+            depenses = Transaction.objects.filter(
+                utilisateur=agent.user,
+                type="DEPENSE",
+                date__year=budget.mois[:4],
+                date__month=budget.mois[5:7]
+            ).aggregate(total=Sum('montant'))['total'] or Decimal('0')
+            
+            progression = (depenses / budget.montant_total) if budget.montant_total != Decimal('0') else Decimal('0')
+            
+            budgets_data.append({
+                "agent_id": agent.id,
+                "agent_name": f"{agent.user.first_name} {agent.user.last_name}",
+                "mois": budget.mois,
+                "budget": str(budget.montant_total),  # Conversion en string pour le JSON
+                "depenses": str(depenses),
+                "solde": str(budget.montant_total - depenses),
+                "progression": float(progression)  # Conversion pour le frontend
+            })
+    
+    return Response(budgets_data)
+# =========================
+# GRAPHIQUE GLOBAL - Statistiques pour tous les agents
+# =========================
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def evolution_mensuelle_globale(request):
+    """Données pour graphique global par mois/catégorie"""
+    if not request.user.is_superuser:
+        return Response({"error": "Accès non autorisé"}, status=403)
+
+    type_op = request.GET.get("type")  # "DEPENSE" ou "ENTREE"
+    annee = request.GET.get("annee")   # ex: "2025"
+
+    # Récupère toutes les transactions
+    qs = Transaction.objects.all()
+
+    # Filtre par type d'opération
+    if type_op:
+        qs = qs.filter(categorie__type=type_op)
+
+    # Filtre par année si précisé
+    if annee:
+        qs = qs.filter(date__year=annee)
+
+    # Structure de données: {mois: {catégorie: montant}}
+    data = defaultdict(lambda: defaultdict(float))
+
+    # Remplit la structure avec les montants par mois et catégorie
+    for op in qs:
+        mois = op.date.strftime("%Y-%m")
+        data[mois][op.categorie.nom] += float(op.montant)
+
+    # Ajoute le nom de l'agent pour chaque transaction
+    transactions_agents = qs.annotate(
+        agent_name=Concat('utilisateur__first_name', Value(' '), 'utilisateur__last_name')
+    ).values('date', 'categorie__nom', 'montant', 'agent_name')
+
+    return Response({
+        'par_categorie': data,
+        'transactions_agents': transactions_agents
     })

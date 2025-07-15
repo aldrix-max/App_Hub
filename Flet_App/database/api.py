@@ -1,6 +1,7 @@
 # Importation du module requests pour faire des requêtes HTTP
 import requests
 import datetime
+import os
 
 # URL de base de l'API Django (backend)
 API_BASE = "http://127.0.0.1:8000/api"  # Adresse locale avec le port par défaut de Django
@@ -401,3 +402,114 @@ def get_budget_resume(token, mois):
     except Exception as e:
         print(f"Erreur get_budget_resume: {e}")
         return None
+    
+
+def download_summary_pdf(token: str, mois: str):
+    url = f"http://127.0.0.1:8000/api/export/pdf/?mois={mois}&type=resume"
+    headers = {
+        "Authorization": f"Token {token}"
+    }
+
+    try:
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            filepath = os.path.join("temp", f"resume_{mois}.pdf")
+            os.makedirs(os.path.dirname(filepath), exist_ok=True)
+            with open(filepath, "wb") as f:
+                f.write(response.content)
+            return os.path.abspath(filepath)
+        else:
+            print(f"Erreur HTTP {response.status_code} : {response.text}")
+            return None
+    except Exception as e:
+        print("Erreur lors du téléchargement :", e)
+        return None
+
+#================================
+# SECTION ADMINISTRATION
+#=================================
+#==================================
+# Ajoutez ces nouvelles fonctions à la fin de api.py
+def get_global_stats(token):
+    """Récupère les statistiques consolidées pour tous les agents"""
+    print("Appel à get_global_stats")
+    try:
+        response = requests.get(
+            f"{API_BASE}/stats/global/",
+            headers={"Authorization": f"Token {token}"},
+            timeout=10
+        )
+        return response.json() if response.status_code == 200 else None
+    except Exception as e:
+        print(f"Erreur get_global_stats: {e}")
+        return None
+
+def get_global_transactions(token, filters={}):
+    """Récupère toutes les transactions avec filtres"""
+    try:
+        response = requests.get(
+            f"{API_BASE}/transactions_global/",
+            headers={"Authorization": f"Token {token}"},
+            params=filters,
+            timeout=10
+        )
+        return response.json() if response.status_code == 200 else []
+    except Exception as e:
+        print(f"Erreur get_global_transactions: {e}")
+        return []
+
+def get_all_agents(token):
+    """Liste tous les agents avec leurs rôles"""
+    try:
+        response = requests.get(
+            f"{API_BASE}/agents/all/",
+            headers={"Authorization": f"Token {token}"},
+            timeout=5
+        )
+        return response.json() if response.status_code == 200 else []
+    except Exception as e:
+        print(f"Erreur get_all_agents: {e}")
+        return []
+
+def get_global_budgets(token, mois=None):
+    """Récupère tous les budgets avec filtres optionnels"""
+    try:
+        params = {}
+        if mois:
+            params["mois"] = mois
+            
+        print(f"🔍 Envoi requête GET à {API_BASE}/budget/global/ avec params={params}")  # Debug
+        
+        response = requests.get(
+            f"{API_BASE}/budget/global/",
+            headers={"Authorization": f"Token {token}"},
+            params=params,
+            timeout=10
+        )
+        
+        print(f"📡 Réponse API : {response.status_code} - {response.text}")  # Debug
+        
+        if response.status_code == 200:
+            return response.json()
+        return []
+    except Exception as e:
+        print(f"❌ Erreur get_global_budgets: {e}")
+        return []
+def get_global_evolution_data(token, type_op="DEPENSE", annee=None):
+    """Récupère les données temporelles globales pour graphiques"""
+    try:
+        params = {"type": type_op}
+        if annee:
+            params["annee"] = annee
+            
+        response = requests.get(
+            f"{API_BASE}/evolution_global/",
+            headers={"Authorization": f"Token {token}"},
+            params=params,
+            timeout=10
+        )
+        return response.json() if response.status_code == 200 else {}
+    except Exception as e:
+        print(f"Erreur get_global_evolution_data: {e}")
+        return {}
+    
