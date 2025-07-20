@@ -23,5 +23,8 @@ urlpatterns = [
     path("transactions_global/", global_transactions),
     path("agents/all/", all_agents),
     path("budget/global/", budget_global),
-    path("evolution_global/", evolution_mensuelle_globale),  # Graphique global
+    path("evolution_global/", evolution_mensuelle_globale),  # Graphique global,
+    # Ajoutez cette ligne dans urlpatterns
+    path("export/pdf/agent/", export_pdf_agent, name="export-pdf-agent"),
+    path("export/pdf/global/", export_global_report_pdf, name="export-pdf-global"),
 ]

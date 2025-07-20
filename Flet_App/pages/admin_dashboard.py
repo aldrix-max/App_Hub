@@ -5,6 +5,7 @@ from components.stats_card import stat_card
 from database.budget import *
 from database.transactions import *
 from database.pdf import *
+from database.pdf_admin import *
 from components.charts import *
 import webbrowser
 from datetime import datetime
@@ -434,94 +435,30 @@ def admindashboard(page: Page):
 
     # --- Vue Rapports Admin ---
     def get_rapport_view():
-        mois_input = TextField(
-            label="Mois (AAAA-MM)", 
-            width=200,
-            color="black",
-            label_style=TextStyle(color="black")
-        )
-        
-        agent_select = Dropdown(
-            label="Agent",
-            width=200,
-            color="black",
-            label_style=TextStyle(color="black")
-        )
-        
-        message = Text("", color=Colors.RED_600)
-        
-        def load_agents():
-            try:
-                agents = get_all_agents(token)
-                agent_select.options = [dropdown.Option("", "Tous les agents")] + [
-                    dropdown.Option(str(a['id']), a['name']) for a in agents
-                ]
-                page.update()
-            except Exception as e:
-                message.value = f"Erreur chargement agents: {str(e)}"
-                message.color = Colors.RED_600
-                page.update()
-        
-        def generer_rapport(e):
-            if not mois_input.value:
-                message.value = "Veuillez spécifier un mois"
-                message.color = Colors.RED_600
-                page.update()
-                return
-            
-            mois = mois_input.value
-            agent_id = agent_select.value if agent_select.value else None
-            
-            try:
-                filepath = download_summary_pdf(token, mois, agent_id)
-                if filepath:
-                    message.value = f"Rapport généré avec succès: {filepath}"
-                    message.color = Colors.GREEN_600
-                else:
-                    message.value = "Erreur lors de la génération du rapport"
-                    message.color = Colors.RED_600
-            except Exception as e:
-                message.value = f"Erreur: {str(e)}"
-                message.color = Colors.RED_600
-            
-            page.update()
-        
-        load_agents()
-        
-        return Column([
-            Text("Génération de rapports", size=20, weight="bold", color="black"),
-            Row([
-                mois_input,
-                agent_select
-            ], spacing=20),
-            ElevatedButton(
-                "Générer PDF",
-                on_click=generer_rapport,
-                icon=Icons.PICTURE_AS_PDF,
-                style=ButtonStyle(
-                    bgcolor=Colors.BLUE_700,
-                    padding={"left": 20, "right": 20, "top": 15, "bottom": 15}
-                )
-            ),
-            message
-        ], spacing=20)
+        return Container(
+            width= 800,
+            content=Column([rapport_view_Admin(page), rapport_view_global(page)],
+                           spacing=20, expand=True, alignment=MainAxisAlignment.CENTER, horizontal_alignment=CrossAxisAlignment.CENTER),
+            padding=Padding(20, 0, 0, 0),
+            alignment=alignment.center)
     # --- Vue Management ---
     def get_management_view():
         def open_admin(e):
             webbrowser.open("http://localhost:8000/admin")
         
         return Column([
-            Text("Administration complète", size=20, weight="bold"),
+            Text("Administration complète", size=22, weight="bold", color="black"),
             ElevatedButton(
                 "Ouvrir l'interface Django Admin",
                 icon=Icons.OPEN_IN_NEW,
                 on_click=open_admin,
+                color=Colors.WHITE,
                 style=ButtonStyle(
                     padding={"left": 20, "right": 20, "top": 15, "bottom": 15},
-                    bgcolor=Colors.BLUE_700
+                    bgcolor=Colors.BLACK
                 )
             )
-        ], alignment=MainAxisAlignment.CENTER, horizontal_alignment=CrossAxisAlignment.CENTER)
+        ], alignment=MainAxisAlignment.CENTER,spacing= 20, horizontal_alignment=CrossAxisAlignment.CENTER)
 
     # --- Navigation ---
     views = {

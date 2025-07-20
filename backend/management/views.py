@@ -559,3 +559,54 @@ def evolution_mensuelle_globale(request):
         'par_categorie': data,
         'transactions_agents': transactions_agents
     })
+    
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def export_pdf_agent(request):
+    """Export PDF pour un agent spécifique"""
+    if not request.user.is_superuser:
+        return Response({"error": "Accès non autorisé"}, status=403)
+    
+    mois = request.query_params.get('mois')
+    agent_id = request.query_params.get('agent_id')
+
+    if not mois or not agent_id:
+        return Response({"error": "Les paramètres 'mois' et 'agent_id' sont requis"}, status=400)
+
+    try:
+        agent = Agent.objects.get(id=agent_id)
+        buffer = generate_agent_report_pdf(mois, agent)
+        return FileResponse(buffer, as_attachment=True, filename=f"rapport_{agent.user.username}_{mois}.pdf")
+    except Agent.DoesNotExist:
+        return Response({"error": "Agent introuvable"}, status=404)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+    
+    
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def export_global_report_pdf(request):
+    if not request.user.is_superuser:
+        return Response({"error": "Accès non autorisé"}, status=403)
+    
+    mois = request.query_params.get('mois')
+    if not mois:
+        return Response({"error": "Le paramètre 'mois' est requis"}, status=400)
+
+    try:
+        # Validation du format de date
+        datetime.strptime(mois, "%Y-%m")
+    except ValueError:
+        return Response({"error": "Format de mois invalide. Utilisez AAAA-MM"}, status=400)
+
+    try:
+        buffer = generate_global_report_pdf(mois)
+        if not buffer:
+            return Response({"error": "Aucune donnée à exporter pour ce mois"}, status=404)
+            
+        response = FileResponse(buffer, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="rapport_global_{mois}.pdf"'
+        return response
+        
+    except Exception as e:
+        return Response({"error": f"Erreur lors de la génération du rapport: {str(e)}"}, status=500)

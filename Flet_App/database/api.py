@@ -513,3 +513,23 @@ def get_global_evolution_data(token, type_op="DEPENSE", annee=None):
         print(f"Erreur get_global_evolution_data: {e}")
         return {}
     
+def download_agent_report_pdf(token: str, mois: str, agent_id: str):
+    """Télécharge un rapport PDF pour un agent spécifique"""
+    url = f"{API_BASE}/export/pdf/agent/?mois={mois}&agent_id={agent_id}"
+    headers = {"Authorization": f"Token {token}"}
+    
+    try:
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            filename = f"rapport_agent_{agent_id}_{mois}.pdf"
+            with open(filename, "wb") as f:
+                f.write(response.content)
+            return os.path.abspath(filename)
+        else:
+            print(f"Erreur HTTP {response.status_code}: {response.text}")
+            return None
+    except Exception as e:
+        print(f"Erreur download_agent_report_pdf: {e}")
+        return None
+    
+    

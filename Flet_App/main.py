@@ -2,7 +2,7 @@ import flet as ft
 from pages.login import login_view
 from pages.admin_dashboard import admindashboard
 from pages.agent_dashboard import agentdashboard
-from pages.visionneur_dashboard import visiondashboard
+
 
 def main(page: ft.Page):
     def route_change(e):
@@ -11,8 +11,6 @@ def main(page: ft.Page):
             page.views.append(admindashboard(page))
         elif page.route == "/agent-dashboard":
             page.views.append(agentdashboard(page))
-        elif page.route == "/visionneur-dashboard":
-            page.views.append(visiondashboard(page))
         else:
             page.views.append(login_view(page))
         page.update()

@@ -77,3 +77,5 @@ def download_summary_pdf(token: str, mois: str, agent_id=None):
     except Exception as e:
         print(f"Erreur download_summary_pdf: {e}")
         return None
+
+
