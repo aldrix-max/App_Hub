@@ -96,9 +96,8 @@ def rapport_view_Admin(page: ft.Page):
         try:
             filename = download_agent_report_pdf(token, mois, agent_id)
             if filename:
-                message.value = f"✅ Rapport généré pour l'agent {agent_dropdown.value}"
-                # Ouvrir le PDF automatiquement
-                os.startfile(filename)
+                message.value = f"✅ Rapport généré pour l'agent {agent_dropdown.value} : {filename}"
+                # os.startfile(filename)  # Désactivé pour le déploiement
             else:
                 message.value = "❌ Échec lors de la génération du rapport"
         except Exception as ex:
@@ -112,19 +111,14 @@ def rapport_view_Admin(page: ft.Page):
             ft.Row([
                 agent_dropdown,
                 mois_input,
-                ft.ElevatedButton(
-                    "Générer le rapport",
-                    on_click=exporter_rapport,
-                    style=ft.ButtonStyle(
-                        padding=20,
-                        bgcolor=ft.Colors.INDIGO_600,
-                        color="white",
-                        shape=ft.RoundedRectangleBorder(radius=10),
-                    ),
-                    width=300,
-                    height=50,
+                ft.ElevatedButton("Générer le rapport", on_click=exporter_rapport, style=ft.ButtonStyle(
+                                                                                            padding=20,
+                                                                                            bgcolor=ft.Colors.INDIGO_600,
+                                                                                            color="white",
+                                                                                            shape=ft.RoundedRectangleBorder(radius=10),
+                                                                                        ), width=300, height=50,
                 )
-            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+            ], wrap=True, alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
             message,
         ],
         scroll=ft.ScrollMode.AUTO,
@@ -181,8 +175,8 @@ def rapport_view_global(page: ft.Page):
         try:
             filename = download_global_report_pdf(token, mois)
             if filename:
-                message.value = f"✅ Rapport global généré pour {mois}"
-                os.startfile(filename)  # Ouvrir le PDF automatiquement
+                message.value = f"✅ Rapport global généré : {filename}"
+                # os.startfile(filename)  # Désactivé pour le déploiement
             else:
                 message.value = "❌ Échec lors de la génération du rapport"
         except Exception as ex:
@@ -207,7 +201,7 @@ def rapport_view_global(page: ft.Page):
                     width=300,
                     height=50,
                 )
-            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+            ],wrap=True, alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
             message,
         ],
         scroll=ft.ScrollMode.AUTO,

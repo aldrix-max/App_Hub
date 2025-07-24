@@ -127,5 +127,6 @@ def transactions_view(page: ft.Page):
         expand=True,  # Prend tout l'espace disponible
         spacing=20  # Espacement entre éléments
     )
+    page.update()
     
     return main_cont  # Retourne l'interface complète

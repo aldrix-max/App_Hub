@@ -258,7 +258,7 @@ def graphique_global_view(page: ft.Page):
                 Text("Évolution Globale des Opérations", size=22, weight="bold", color="black"),
                 annee_dropdown,
                 type_radio
-            ], spacing=20, alignment=MainAxisAlignment.SPACE_BETWEEN),
+            ], spacing=20,wrap=True, alignment=MainAxisAlignment.SPACE_BETWEEN),
             chart_container
         ], spacing=20),
         padding=20,

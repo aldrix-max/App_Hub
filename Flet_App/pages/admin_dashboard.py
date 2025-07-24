@@ -75,11 +75,11 @@ def admindashboard(page: Page):
             divider_thickness=0,
             data_row_max_height=40,
         )
-
+        page.update()
         return Column([
             Column([
                     Text("Tableau de bord", size=30, weight="bold", color="black"),
-                    Text("Vue d'ensemble de votre situation financière",color=Colors.GREY, size=16),],
+                    Text("Vue d'ensemble de votre situation financière",color=Colors.BLACK, size=16),],
                     alignment=MainAxisAlignment.START, spacing=10),
             cards,
             # Nouveau graphique global
@@ -242,14 +242,14 @@ def admindashboard(page: Page):
 
         # Lance l'initialisation
         initialize()
-
+        page.update()
         # 5. Interface organisée
         return Column(
             controls=[
                 # En-tête
                 Column([
                     Text("Transactions", size=30, weight="bold", color="black"),
-                    Text("Visualisez vos dépenses et vos entrées", color=Colors.GREY, size=16)
+                    Text("Visualisez vos dépenses et vos entrées", color=Colors.BLACK, size=16)
                 ], alignment=MainAxisAlignment.START, spacing=10),
                 
                 # Section tableau
@@ -405,12 +405,13 @@ def admindashboard(page: Page):
 
         load_agents()
         load_data()  # Chargement initial
+        page.update()
 
         return Container(
             content=Column([
                 Column([
                     Text("Budgets des agents", size=24, weight="bold", color="black"),
-                    Text("Visualisation des budgets mensuels", size=16, color=Colors.GREY_600),
+                    Text("Visualisation des budgets mensuels", size=16, color=Colors.BLACK),
                 ], spacing=10),
                 
                 Row([
@@ -435,11 +436,13 @@ def admindashboard(page: Page):
 
     # --- Vue Rapports Admin ---
     def get_rapport_view():
+        page.update()
         return Container(
             width= 800,
-            content=Column([rapport_view_Admin(page), rapport_view_global(page)],
-                           spacing=20, expand=True, alignment=MainAxisAlignment.CENTER, horizontal_alignment=CrossAxisAlignment.CENTER),
-            padding=Padding(20, 0, 0, 0),
+            padding=30,
+            bgcolor="white",
+            content=Column([rapport_view_Admin(page),Divider(1), rapport_view_global(page)],
+                           spacing=20, expand=True, alignment=MainAxisAlignment.CENTER, horizontal_alignment=CrossAxisAlignment.STRETCH),
             alignment=alignment.center)
     # --- Vue Management ---
     def get_management_view():
@@ -475,27 +478,66 @@ def admindashboard(page: Page):
         page.update()
         
     # Navigation Rail
-    rail = NavigationRail(
-        selected_index=page.admin_selected_index,
-        on_change=navigate,
-        destinations=[
-            NavigationRailDestination(icon=Icons.DASHBOARD, label="Accueil"),
-            NavigationRailDestination(icon=Icons.LIST_ALT, label="Transactions"),
-            NavigationRailDestination(icon=Icons.ACCOUNT_BALANCE, label="Budgets"),
-            NavigationRailDestination(icon=Icons.PICTURE_AS_PDF, label="Rapports"),
-            NavigationRailDestination(icon=Icons.ADMIN_PANEL_SETTINGS, label="Management")
-        ],
-        label_type=NavigationRailLabelType.ALL,
-        min_width=100,
-        min_extended_width=200,
-        elevation=10,
-        group_alignment=-0.9
+    rail = Container(
+        content= Column([
+            Container( 
+                width= 100,
+                height= 100,
+                bgcolor="white",
+                image=DecorationImage(
+                    src="Flet_App/assets/logo.png",
+                    fit=ImageFit.CONTAIN,
+                    filter_quality=FilterQuality.LOW),
+                      ),
+            NavigationRail(
+                selected_index=page.admin_selected_index,
+                on_change=navigate,
+                height= 500,
+                destinations=[
+                    NavigationRailDestination(icon=Icons.DASHBOARD, label="Accueil"),
+                    NavigationRailDestination(icon=Icons.LIST_ALT, label="Transactions"),
+                    NavigationRailDestination(icon=Icons.ACCOUNT_BALANCE, label="Budgets"),
+                    NavigationRailDestination(icon=Icons.PICTURE_AS_PDF, label="Rapports"),
+                    NavigationRailDestination(icon=Icons.ADMIN_PANEL_SETTINGS, label="Management")
+                ],
+                label_type=NavigationRailLabelType.ALL,
+                min_width=100,
+                min_extended_width=200,
+                elevation=10,
+                group_alignment=-0.9),
+            
+            Row([ElevatedButton(
+                            "Déconnexion",
+                            icon=Icons.LOGOUT,
+                            on_click=lambda e: page.go("/login_page"),bgcolor="white", color=Colors.BLACK,
+                            style=ButtonStyle(shape=RoundedRectangleBorder(radius=0)))],
+                        alignment=MainAxisAlignment.END)
+                    ], alignment=MainAxisAlignment.START, horizontal_alignment=CrossAxisAlignment.STRETCH),
+        expand=1,
+        padding=0
     )
-
+    
+    
+    
     content = Container(
         content=views[page.admin_selected_index](),
-        expand=True,
-        bgcolor="#f1f1f1",
+        expand=9,
+        image=DecorationImage(
+            src="Flet_App/assets/logo.png",
+            fit=ImageFit.CONTAIN,
+            filter_quality=FilterQuality.LOW
+        ),
+        # bgcolor="#fcf9e7",
+        gradient=LinearGradient(
+            begin=alignment.top_left,  # Point de départ du dégradé (vert)
+            end=alignment.bottom_right, # Point d'arrivée du dégradé (bleu)
+            colors=[
+                Colors.GREEN_400,  # Couleur au début (vert)
+                Colors.WHITE,      # Couleur au milieu (blanc)
+                Colors.BLUE_400    # Couleur à la fin (bleu)
+            ],
+            stops=[0.0, 0.5, 1.0] # Position des couleurs : 0.0 pour le début, 0.5 pour le milieu, 1.0 pour la fin
+        ),
         padding=Padding(90, 20, 90, 20),
         alignment=alignment.top_center,
     )
@@ -505,8 +547,7 @@ def admindashboard(page: Page):
         controls=[
             Row([
                 rail,
-                VerticalDivider(width=1),
                 content
-            ], expand=True)
+            ], expand=10)
         ]
     )

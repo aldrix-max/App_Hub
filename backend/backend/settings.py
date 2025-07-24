@@ -3,14 +3,15 @@ Configuration globale du projet Django.
 """
 
 from pathlib import Path
+import os
 
 # Chemins de base du projet
 BASE_DIR = Path(__file__).resolve().parent.parent  # Racine du projet
 
 # Sécurité (⚠️ À modifier en production !)
-SECRET_KEY = 'django-insecure-f(&22@kuaw-7yk&_)3$wf8_2f3j-4jq*rcqh4r*mqyikq759_5'  # Clé secrète pour le chiffrement
-DEBUG = True  # Mode débogage (désactiver en production)
-ALLOWED_HOSTS = []  # Domaines autorisés (vide = tous en debug)
+SECRET_KEY = os.getenv('SECRET_KEY', 'clé-par-défaut-à-changer')
+DEBUG = os.getenv('DEBUG', 'False') == 'True'  # Mode debug activé si la variable d'environnement est True
+ALLOWED_HOSTS = ['*']  # Domaines autorisés (vide = tous en debug)
 
 # Applications installées
 INSTALLED_APPS = [
@@ -45,6 +46,8 @@ MIDDLEWARE = [
 
 # Configuration CORS (⚠️ À restreindre en production !)
 CORS_ALLOW_ALL_ORIGINS = True  # Autorise toutes les origines (développement seulement)
+# Pour éviter l'erreur CSRF sur Render
+CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com']
 
 # Configuration des URLs
 ROOT_URLCONF = 'backend.urls'  # Fichier racine des URLs
@@ -69,11 +72,15 @@ TEMPLATES = [
 # Serveur WSGI
 WSGI_APPLICATION = 'backend.wsgi.application'
 
-# Base de données (SQLite par défaut)
+# Configuration de la base de données pour PostgreSQL (Render fournit PostgreSQL)
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',  # Fichier de la base SQLite
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT', '5432'),
     }
 }
 
@@ -102,7 +109,9 @@ USE_I18N = True          # Activation de l'internationalisation
 USE_TZ = True            # Utilisation des timezones
 
 # Fichiers statiques (CSS, JS, images)
-STATIC_URL = 'static/'   # URL de base pour les fichiers statics
+STATIC_URL = '/static/'   # URL de base pour les fichiers statics
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Répertoire de collecte des fichiers statics
+
 
 # Clé primaire par défaut des modèles
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
