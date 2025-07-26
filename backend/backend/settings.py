@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent  # Racine du projet
 # Sécurité (⚠️ À modifier en production !)
 SECRET_KEY = os.getenv('SECRET_KEY', 's^+=7yxizhv9==)+&e133yjv^mm0@g0i_7kcp(zcrwahgo!mp-')
 DEBUG = False  # Mode debug activé si la variable d'environnement est True
-ALLOWED_HOSTS = ['app_hub_db.onrender.com']  # Domaines autorisés (vide = tous en debug)
+ALLOWED_HOSTS = ['']  # Domaines autorisés (vide = tous en debug)
 
 # Applications installées
 INSTALLED_APPS = [
@@ -34,6 +34,8 @@ INSTALLED_APPS = [
 
 # Middlewares (traitement des requêtes/responses)
 MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Gestion des fichiers statiques en production
     'django.middleware.security.SecurityMiddleware',  # Sécurité de base
     'django.contrib.sessions.middleware.SessionMiddleware',  # Gestion sessions
     'django.middleware.common.CommonMiddleware',      # Traitement des requêtes
@@ -111,6 +113,7 @@ USE_TZ = True            # Utilisation des timezones
 # Fichiers statiques (CSS, JS, images)
 STATIC_URL = '/static/'   # URL de base pour les fichiers statics
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Répertoire de collecte des fichiers statics
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 # Clé primaire par défaut des modèles

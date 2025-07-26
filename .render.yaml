@@ -27,5 +27,6 @@ services:
     name: flet-frontend
     env: python
     plan: free
+    pythonVersion: 3.9.7
     buildCommand: pip install -r requirements.txt
     startCommand: python Flet_App/main.py
