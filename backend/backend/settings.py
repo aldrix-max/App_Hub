@@ -10,9 +10,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent  # Racine du projet
 
 # Sécurité (⚠️ À modifier en production !)
 SECRET_KEY = os.getenv('SECRET_KEY', 's^+=7yxizhv9==)+&e133yjv^mm0@g0i_7kcp(zcrwahgo!mp-')
-DEBUG = False  # Mode debug activé si la variable d'environnement est True
-ALLOWED_HOSTS = ['']  # Domaines autorisés (vide = tous en debug)
-
+DEBUG = True  # Mode debug activé si la variable d'environnement est True
+ALLOWED_HOSTS = [
+    'financial-flow.onrender.com', 
+    'localhost',
+    '127.0.0.1'
+]
 # Applications installées
 INSTALLED_APPS = [
     # Apps Django par défaut

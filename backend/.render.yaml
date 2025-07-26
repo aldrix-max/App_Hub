@@ -8,7 +8,7 @@ services:
       cd backend && python manage.py collectstatic --noinput
     startCommand: |
       export PYTHONPATH=$PYTHONPATH:/opt/render/project/src
-      gunicorn backend.wsgi:application --bind 0.0.0.0:$PORT
+      gunicorn backend.wsgi:application --bind 0.0.0.0:$PORT --workers 2
     envVars:
       - key: PYTHONPATH
         value: /opt/render/project/src
