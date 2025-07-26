@@ -4,7 +4,7 @@ import datetime
 import os
 
 # URL de base de l'API Django (backend)
-API_BASE = "http://127.0.0.1:8000/api"  # Adresse locale avec le port par défaut de Django
+API_BASE = "https://financial-flow.onrender.com/api/"  # Adresse locale avec le port par défaut de Django
 
 # =========================
 # SECTION AUTHENTIFICATION
