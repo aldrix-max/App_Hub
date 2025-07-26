@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent  # Racine du projet
 # Sécurité (⚠️ À modifier en production !)
 SECRET_KEY = os.getenv('SECRET_KEY', 's^+=7yxizhv9==)+&e133yjv^mm0@g0i_7kcp(zcrwahgo!mp-')
 DEBUG = False  # Mode debug activé si la variable d'environnement est True
-ALLOWED_HOSTS = ['*']  # Domaines autorisés (vide = tous en debug)
+ALLOWED_HOSTS = ['app_hub_db.onrender.com']  # Domaines autorisés (vide = tous en debug)
 
 # Applications installées
 INSTALLED_APPS = [
@@ -77,7 +77,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('financialflow'),
-        'USER': os.getenv('DB_USER'),
+        'USER': os.getenv('aldrixmax'),
         'PASSWORD': os.getenv('jfPfInuVQFsxM9S56a4vu6ohjiiN00P9'),
         'HOST': os.getenv('dpg-d22h0hfdiees73dditpg-a'),
         'PORT': os.getenv('DB_PORT', '5432'),
