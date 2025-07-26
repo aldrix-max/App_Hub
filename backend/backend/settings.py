@@ -9,8 +9,8 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent  # Racine du projet
 
 # Sécurité (⚠️ À modifier en production !)
-SECRET_KEY = os.getenv('SECRET_KEY', 'clé-par-défaut-à-changer')
-DEBUG = os.getenv('DEBUG', 'False') == 'True'  # Mode debug activé si la variable d'environnement est True
+SECRET_KEY = os.getenv('SECRET_KEY', 's^+=7yxizhv9==)+&e133yjv^mm0@g0i_7kcp(zcrwahgo!mp-')
+DEBUG = False  # Mode debug activé si la variable d'environnement est True
 ALLOWED_HOSTS = ['*']  # Domaines autorisés (vide = tous en debug)
 
 # Applications installées
@@ -76,10 +76,10 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME'),
+        'NAME': os.getenv('financialflow'),
         'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
+        'PASSWORD': os.getenv('jfPfInuVQFsxM9S56a4vu6ohjiiN00P9'),
+        'HOST': os.getenv('dpg-d22h0hfdiees73dditpg-a'),
         'PORT': os.getenv('DB_PORT', '5432'),
     }
 }
