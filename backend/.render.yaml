@@ -1,15 +1,20 @@
 services:
-  services:
   - type: web
     name: backend-django
     env: python
     plan: free
     buildCommand: |
-      pip install -r requirements.txt  # Chemin modifié
+      pip install -r requirements.txt
       cd backend && python manage.py collectstatic --noinput
     startCommand: |
-      cd backend && gunicorn backend.wsgi:application
+      export PYTHONPATH=$PYTHONPATH:/opt/render/project/src
+      gunicorn backend.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
+      - key: PYTHONPATH
+        value: /opt/render/project/src
+      - key: DJANGO_SETTINGS_MODULE
+        value: backend.settings
+      # ... (autres variables)
       - key: DJANGO_SETTINGS_MODULE
         value: backend.settings
       - key: SECRET_KEY
