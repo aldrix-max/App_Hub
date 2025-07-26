@@ -78,10 +78,10 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('financialflow'),
-        'USER': os.getenv('aldrixmax'),
-        'PASSWORD': os.getenv('jfPfInuVQFsxM9S56a4vu6ohjiiN00P9'),
-        'HOST': os.getenv('dpg-d22h0hfdiees73dditpg-a'),
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
         'PORT': os.getenv('DB_PORT', '5432'),
     }
 }
@@ -118,3 +118,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Clé primaire par défaut des modèles
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Configuration pour les fichiers statiques en production
+if not DEBUG:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
