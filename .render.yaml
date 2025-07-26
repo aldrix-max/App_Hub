@@ -1,10 +1,12 @@
 services:
   - type: web
-    name: django-backend
+    name: backend-django
     env: python
     plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn backend.wsgi:application
+    buildCommand: |
+      pip install -r backend/requirements.txt
+    startCommand: |
+      cd backend && gunicorn backend.wsgi:application
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: backend.settings
@@ -22,11 +24,6 @@ services:
         value: dpg-d22h0hfdiees73dditpg-a
       - key: DB_PORT
         value: 5432
-
-  - type: web  # Ou "worker" si tu veux que Flet tourne sans page publique
-    name: flet-frontend
-    env: python
-    plan: free
-    pythonVersion: 3.9.7
-    buildCommand: pip install -r requirements.txt
-    startCommand: python Flet_App/main.py
+    buildFilter:
+      paths:
+        - backend/**
