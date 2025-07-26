@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: backend-django
+    env: python
+    plan: free
+    buildCommand: |
+      pip install -r backend/requirements.txt
+    startCommand: |
+      cd backend && gunicorn backend.wsgi:application
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: backend.settings
+      - key: SECRET_KEY
+        value: s^+=7yxizhv9==)+&e133yjv^mm0@g0i_7kcp(zcrwahgo!mp-
+      - key: DEBUG
+        value: "False"
+      - key: DB_NAME
+        value: financialflow
+      - key: DB_USER
+        value: aldrixmax
+      - key: DB_PASSWORD
+        value: jfPfInuVQFsxM9S56a4vu6ohjiiN00P9
+      - key: DB_HOST
+        value: dpg-d22h0hfdiees73dditpg-a
+      - key: DB_PORT
+        value: 5432
+    buildFilter:
+      paths:
+        - backend/**
