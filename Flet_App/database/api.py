@@ -478,7 +478,7 @@ def get_global_budgets(token, mois=None):
         if mois:
             params["mois"] = mois
             
-        print(f"🔍 Envoi requête GET à {API_BASE}/budget/global/ avec params={params}")  # Debug
+        print(f"🔍 Envoi requête GET à {API_BASE}budget/global/ avec params={params}")  # Debug
         
         response = requests.get(
             f"{API_BASE}budget/global/",
