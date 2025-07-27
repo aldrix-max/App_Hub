@@ -57,7 +57,7 @@ def login_view(page: Page):
                 Text("Connectez-vous pour accéder à l'application", size=16, weight="bold", color="#1f2937")
             ], alignment=MainAxisAlignment.CENTER, horizontal_alignment=CrossAxisAlignment.CENTER),
                 Row([Text("nom d'utilisateur par defaut: admin", size=12, color="#6b7280"),
-                      Text(" mot de passe: admin", size=12, color="#6b7280")], alignment=MainAxisAlignment.SPACE_BETWEEN),
+                      Text(" mot de passe: admin123", size=12, color="#6b7280")], alignment=MainAxisAlignment.SPACE_BETWEEN),
                 username,
                 password,
                 ElevatedButton("Se connecter",on_click=on_login,width=350, color="white", bgcolor="#2563eb",
