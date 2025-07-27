@@ -138,6 +138,7 @@ def Operations(page: Page):
     # Fonction pour charger les catégories selon le type sélectionné
     def charger_categories():
         cats = get_categories(token)
+        print(cats)
         if cats:
             # Filtre les catégories selon le type sélectionné (ou toutes si aucun type)
             categories_dropdown.options = [

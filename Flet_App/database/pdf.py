@@ -55,7 +55,7 @@ def rapport_view(page: ft.Page):
     
 def download_summary_pdf(token: str, mois: str, agent_id=None):
     """Génère un PDF pour un mois donné, optionnellement filtré par agent"""
-    base_url = "http://127.0.0.1:8000/api/export/pdf/"
+    base_url = "https://financial-flow.onrender.com/api/export/pdf/"
     params = f"?mois={mois}&type=resume"
     if agent_id:
         params += f"&agent_id={agent_id}"

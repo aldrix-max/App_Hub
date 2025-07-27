@@ -30,6 +30,7 @@ def admindashboard(page: Page):
     # --- Vue Accueil Admin ---
     def get_accueil_view():
         stats = get_global_stats(token)
+        print(stats)  # Debug: Afficher les stats dans la console
         if not stats:
             return Column([
                 Text("Tableau de bord Admin", size=24, weight="bold"),

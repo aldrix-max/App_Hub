@@ -29,7 +29,7 @@ def login_user(username, password):
         2. Le backend vérifie les credentials
         3. Retourne le token si valide
     """
-    url = f"{API_BASE}/login/"
+    url = f"{API_BASE}login/"
     try:
         response = requests.post(url, data={
             "username": username,
@@ -58,7 +58,7 @@ def get_categories(token):
         - Les catégories sont utilisées pour classer les transactions
         - Requête GET protégée par token
     """
-    url = f"{API_BASE}/categories/"
+    url = f"{API_BASE}categories/"
     headers = {"Authorization": f"Token {token}"}
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
@@ -98,7 +98,7 @@ def create_operation(token, data):
     }
 
     response = requests.post(
-        f"{API_BASE}/transactions/",
+        f"{API_BASE}transactions/",
         headers=headers,
         data=data  # Format form-data (compatible avec Django)
     )
@@ -136,7 +136,7 @@ def get_transactions(token, type_op=None, categorie_name=None, date=None, search
             params["search"] = search
 
         res = requests.get(
-            f"{API_BASE}/transactions/",
+            f"{API_BASE}transactions/",
             headers={"Authorization": f"Token {token}"},
             params=params,
             timeout=5
@@ -175,7 +175,7 @@ def get_depenses(token, search="", categorie_name=""):
         if categorie_name and categorie_name not in ["", "Toutes"]:
             params["categorie"] = categorie_name
         res = requests.get(
-            f"{API_BASE}/depense/",
+            f"{API_BASE}depense/",
             headers={"Authorization": f"Token {token}"},
             params=params
         )
@@ -206,7 +206,7 @@ def get_entrees(token, search="", categorie_name=""):
         if categorie_name and categorie_name not in ["", "Toutes"]:
             params["categorie"] = categorie_name
         res = requests.get(
-            f"{API_BASE}/entree/",
+            f"{API_BASE}entree/",
             headers={"Authorization": f"Token {token}"},
             params=params
         )
@@ -237,7 +237,7 @@ def get_stats(token):
         Pour les widgets de dashboard
     """
     try:
-        res = requests.get(f"{API_BASE}/stats/", headers={"Authorization": f"Token {token}"})
+        res = requests.get(f"{API_BASE}stats/", headers={"Authorization": f"Token {token}"})
         return res.json() if res.status_code == 200 else None
     except:
         return None
@@ -268,7 +268,7 @@ def get_evolution_data(token, type_op="DEPENSE", annee=None):
         if annee:
             params["annee"] = annee
         res = requests.get(
-            f"{API_BASE}/evolution/",
+            f"{API_BASE}evolution/",
             headers={"Authorization": f"Token {token}"},
             params=params
         )
@@ -296,7 +296,7 @@ def verifier_budget_global(token, mois):
     """
     try:
         response = requests.get(
-            f"{API_BASE}/budget/verifier/",
+            f"{API_BASE}budget/verifier/",
             headers={"Authorization": f"Token {token}"},
             params={"mois": mois}
         )
@@ -325,7 +325,7 @@ def get_budget_mensuel(token, mois):
     """
     try:
         res = requests.get(
-            f"{API_BASE}/budget/actuel/",
+            f"{API_BASE}budget/actuel/",
             headers={"Authorization": f"Token {token}"},
             params={"mois": mois},
             timeout=5
@@ -355,7 +355,7 @@ def ajouter_budget_mensuel(token, mois, montant_total):
     """
     try:
         res = requests.post(
-            f"{API_BASE}/budget/",
+            f"{API_BASE}budget/",
             headers={"Authorization": f"Token {token}"},
             data={"mois": mois, "montant_total": montant_total},
             timeout=5
@@ -391,7 +391,7 @@ def get_budget_resume(token, mois):
     """
     try:
         res = requests.get(
-            f"{API_BASE}/budget/resume/",
+            f"{API_BASE}budget/resume/",
             headers={"Authorization": f"Token {token}"},
             params={"mois": mois},
             timeout=5
@@ -405,7 +405,7 @@ def get_budget_resume(token, mois):
     
 
 def download_summary_pdf(token: str, mois: str):
-    url = f"http://127.0.0.1:8000/api/export/pdf/?mois={mois}&type=resume"
+    url = f"{API_BASE}export/pdf/?mois={mois}&type=resume"
     headers = {
         "Authorization": f"Token {token}"
     }
@@ -435,7 +435,7 @@ def get_global_stats(token):
     print("Appel à get_global_stats")
     try:
         response = requests.get(
-            f"{API_BASE}/stats/global/",
+            f"{API_BASE}stats/global/",
             headers={"Authorization": f"Token {token}"},
             timeout=10
         )
@@ -448,7 +448,7 @@ def get_global_transactions(token, filters={}):
     """Récupère toutes les transactions avec filtres"""
     try:
         response = requests.get(
-            f"{API_BASE}/transactions_global/",
+            f"{API_BASE}transactions_global/",
             headers={"Authorization": f"Token {token}"},
             params=filters,
             timeout=10
@@ -462,7 +462,7 @@ def get_all_agents(token):
     """Liste tous les agents avec leurs rôles"""
     try:
         response = requests.get(
-            f"{API_BASE}/agents/all/",
+            f"{API_BASE}agents/all/",
             headers={"Authorization": f"Token {token}"},
             timeout=5
         )
@@ -481,7 +481,7 @@ def get_global_budgets(token, mois=None):
         print(f"🔍 Envoi requête GET à {API_BASE}/budget/global/ avec params={params}")  # Debug
         
         response = requests.get(
-            f"{API_BASE}/budget/global/",
+            f"{API_BASE}budget/global/",
             headers={"Authorization": f"Token {token}"},
             params=params,
             timeout=10
@@ -503,7 +503,7 @@ def get_global_evolution_data(token, type_op="DEPENSE", annee=None):
             params["annee"] = annee
             
         response = requests.get(
-            f"{API_BASE}/evolution_global/",
+            f"{API_BASE}evolution_global/",
             headers={"Authorization": f"Token {token}"},
             params=params,
             timeout=10
@@ -515,7 +515,7 @@ def get_global_evolution_data(token, type_op="DEPENSE", annee=None):
     
 def download_agent_report_pdf(token: str, mois: str, agent_id: str):
     """Télécharge un rapport PDF pour un agent spécifique"""
-    url = f"{API_BASE}/export/pdf/agent/?mois={mois}&agent_id={agent_id}"
+    url = f"{API_BASE}export/pdf/agent/?mois={mois}&agent_id={agent_id}"
     headers = {"Authorization": f"Token {token}"}
     
     try:

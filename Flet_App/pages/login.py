@@ -53,7 +53,7 @@ def login_view(page: Page):
     form = Container(
         content=Column(
             [   Column([
-                Image(src="assets/logo.png", width=350, height=250, fit=ImageFit.CONTAIN),
+                Image(src="Flet_App/assets/logo.png", width=350, height=250, fit=ImageFit.CONTAIN),
                 Text("Connectez-vous pour accéder à l'application", size=16, weight="bold", color="#1f2937")
             ], alignment=MainAxisAlignment.CENTER, horizontal_alignment=CrossAxisAlignment.CENTER),
                 Row([Text("nom d'utilisateur par defaut: admin", size=12, color="#6b7280"),
@@ -80,7 +80,7 @@ def login_view(page: Page):
     # contruction du background
     background=Container(
         image=DecorationImage(
-            src="/assets/back.png",
+            src="Flet_App/assets/back.png",
             fit=ImageFit.CONTAIN,
             opacity=0.5,
             filter_quality=FilterQuality.LOW

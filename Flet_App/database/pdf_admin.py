@@ -26,7 +26,7 @@ def rapport_view_Admin(page: ft.Page):
         """Récupère la liste de tous les agents"""
         try:
             response = requests.get(
-                f"{API_BASE}/agents/all/",
+                f"{API_BASE}agents/all/",
                 headers={"Authorization": f"Token {token}"},
                 timeout=5
             )
@@ -38,7 +38,7 @@ def rapport_view_Admin(page: ft.Page):
     # Fonction pour télécharger le rapport PDF d'un agent
     def download_agent_report_pdf(token: str, mois: str, agent_id: str):
         """Télécharge un rapport PDF pour un agent spécifique"""
-        url = f"{API_BASE}/export/pdf/agent/?mois={mois}&agent_id={agent_id}"
+        url = f"{API_BASE}export/pdf/agent/?mois={mois}&agent_id={agent_id}"
         headers = {"Authorization": f"Token {token}"}
         
         try:
@@ -146,7 +146,7 @@ def rapport_view_global(page: ft.Page):
     
     def download_global_report_pdf(token: str, mois: str):
         """Télécharge le rapport PDF global"""
-        url = f"{API_BASE}/export/pdf/global/?mois={mois}"
+        url = f"{API_BASE}export/pdf/global/?mois={mois}"
         headers = {"Authorization": f"Token {token}"}
         
         try:
