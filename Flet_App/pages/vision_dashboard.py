@@ -540,7 +540,7 @@ def visiondashboard(page: Page):
     )
 
     return View(
-        "/admin-dashboard",
+        "/vision_dashboard",
         controls=[
             Row([
                 rail,
