@@ -8,7 +8,6 @@ services:
       cd backend && python manage.py collectstatic --noinput
     startCommand: |
       export PYTHONPATH=$PYTHONPATH:/opt/render/project/src
-      cd backend && python create_superuser.py 
       gunicorn backend.wsgi:application --bind 0.0.0.0:$PORT --workers 2
      
     envVars:
