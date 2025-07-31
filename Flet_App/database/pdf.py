@@ -1,7 +1,6 @@
 import flet as ft
 import os
 from pathlib import Path
-from database.api import download_summary_pdf
 import requests
 import platform
 
@@ -24,6 +23,27 @@ def rapport_view(page: ft.Page):
     )
     message = ft.Text(value="", size=16, color="black")
 
+    def download_summary_pdf(token: str, mois: str):
+        """Version modifiée pour sauvegarder directement dans Documents"""
+        base_url = "https://financial-flow.onrender.com/api/export/pdf/"
+        params = f"?mois={mois}&type=resume"
+        headers = {"Authorization": f"Token {token}"}
+        
+        try:
+            response = requests.get(base_url + params, headers=headers)
+            if response.status_code == 200:
+                # Sauvegarde directe dans Documents
+                pdf_path = documents_path / f"rapport_{mois}.pdf"
+                pdf_path.parent.mkdir(exist_ok=True)
+                
+                with open(pdf_path, "wb") as f:
+                    f.write(response.content)
+                return str(pdf_path)
+            return None
+        except Exception as e:
+            print(f"Erreur download_summary_pdf: {e}")
+            return None
+
     def exporter_rapport(e):
         mois = mois_input.value.strip()
         if not mois:
@@ -35,13 +55,9 @@ def rapport_view(page: ft.Page):
         page.update()
 
         try:
-            filename = download_summary_pdf(token, mois)
-            if filename:
-                # Déplacer le fichier vers Documents
-                pdf_path = documents_path / f"rapport_{mois}.pdf"
-                os.replace(filename, pdf_path)
-                
-                message.value = f"✅ Rapport sauvegardé dans : {pdf_path}"
+            final_path = download_summary_pdf(token, mois)
+            if final_path:
+                message.value = f"✅ Rapport sauvegardé dans : {final_path}"
                 
                 # Ouvrir le dossier (si local)
                 if platform.system() == "Windows":
@@ -80,23 +96,3 @@ def rapport_view(page: ft.Page):
         scroll=ft.ScrollMode.AUTO,
         spacing=30
     )
-
-def download_summary_pdf(token: str, mois: str):
-    """Version modifiée pour retourner le chemin temporaire"""
-    base_url = "https://financial-flow.onrender.com/api/export/pdf/"
-    params = f"?mois={mois}&type=resume"
-    headers = {"Authorization": f"Token {token}"}
-    
-    try:
-        response = requests.get(base_url + params, headers=headers)
-        if response.status_code == 200:
-            temp_path = Path("temp") / f"rapport_{mois}.pdf"
-            temp_path.parent.mkdir(exist_ok=True)
-            
-            with open(temp_path, "wb") as f:
-                f.write(response.content)
-            return str(temp_path)
-        return None
-    except Exception as e:
-        print(f"Erreur download_summary_pdf: {e}")
-        return None

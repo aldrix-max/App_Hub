@@ -44,7 +44,8 @@ def rapport_view_Admin(page: ft.Page):
         try:
             response = requests.get(url, headers=headers)
             if response.status_code == 200:
-                temp_path = Path("temp") / f"rapport_agent_{agent_id}_{mois}.pdf"
+                # Sauvegarder directement dans Documents au lieu de temp
+                temp_path = documents_path / f"rapport_agent_{agent_id}_{mois}.pdf"
                 temp_path.parent.mkdir(exist_ok=True)
                 
                 with open(temp_path, "wb") as f:
@@ -93,17 +94,13 @@ def rapport_view_Admin(page: ft.Page):
         page.update()
 
         try:
-            temp_file = download_agent_report_pdf(token, mois, agent_id)
-            if temp_file:
-                # Déplacer vers Documents
+            final_path = download_agent_report_pdf(token, mois, agent_id)
+            if final_path:
                 agent_name = next(
                     (opt.text for opt in agent_dropdown.options 
                      if opt.key == agent_id), 
                     agent_id
                 )
-                final_path = documents_path / f"rapport_{agent_name}_{mois}.pdf"
-                os.replace(temp_file, final_path)
-                
                 message.value = f"✅ Rapport sauvegardé dans : {final_path}"
                 
                 # Ouvrir le dossier (si local)
@@ -173,7 +170,8 @@ def rapport_view_global(page: ft.Page):
         try:
             response = requests.get(url, headers=headers)
             if response.status_code == 200:
-                temp_path = Path("temp") / f"rapport_global_{mois}.pdf"
+                # Sauvegarder directement dans Documents au lieu de temp
+                temp_path = documents_path / f"rapport_global_{mois}.pdf"
                 temp_path.parent.mkdir(exist_ok=True)
                 
                 with open(temp_path, "wb") as f:
@@ -196,11 +194,8 @@ def rapport_view_global(page: ft.Page):
         page.update()
 
         try:
-            temp_file = download_global_report_pdf(token, mois)
-            if temp_file:
-                final_path = documents_path / f"rapport_global_{mois}.pdf"
-                os.replace(temp_file, final_path)
-                
+            final_path = download_global_report_pdf(token, mois)
+            if final_path:
                 message.value = f"✅ Rapport sauvegardé dans : {final_path}"
                 
                 if platform.system() == "Windows":
