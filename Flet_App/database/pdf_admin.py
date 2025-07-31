@@ -1,8 +1,9 @@
 import flet as ft
-import datetime
 import os
+from pathlib import Path
 import requests
-from database.api import API_BASE  # Ajoutez cette importation
+from database.api import API_BASE
+import platform
 
 def rapport_view_Admin(page: ft.Page):
     token = page.session.get("token")
@@ -12,7 +13,10 @@ def rapport_view_Admin(page: ft.Page):
         page.go("/")
         return
 
-    # Liste déroulante des agents
+    # Chemin vers le dossier Documents
+    documents_path = Path.home() / "Documents"
+    documents_path.mkdir(exist_ok=True)
+
     agent_dropdown = ft.Dropdown(
         label="Agent",
         label_style=ft.TextStyle(color="black"),
@@ -20,10 +24,8 @@ def rapport_view_Admin(page: ft.Page):
         color="black",
         options=[]
     )
-    
-    # Fonction pour récupérer la liste des agents
+
     def get_all_agents(token):
-        """Récupère la liste de tous les agents"""
         try:
             response = requests.get(
                 f"{API_BASE}agents/all/",
@@ -35,27 +37,24 @@ def rapport_view_Admin(page: ft.Page):
             print(f"Erreur get_all_agents: {e}")
             return []
 
-    # Fonction pour télécharger le rapport PDF d'un agent
     def download_agent_report_pdf(token: str, mois: str, agent_id: str):
-        """Télécharge un rapport PDF pour un agent spécifique"""
         url = f"{API_BASE}export/pdf/agent/?mois={mois}&agent_id={agent_id}"
         headers = {"Authorization": f"Token {token}"}
         
         try:
             response = requests.get(url, headers=headers)
             if response.status_code == 200:
-                filename = f"rapport_agent_{agent_id}_{mois}.pdf"
-                with open(filename, "wb") as f:
+                temp_path = Path("temp") / f"rapport_agent_{agent_id}_{mois}.pdf"
+                temp_path.parent.mkdir(exist_ok=True)
+                
+                with open(temp_path, "wb") as f:
                     f.write(response.content)
-                return os.path.abspath(filename)
-            else:
-                print(f"Erreur HTTP {response.status_code}: {response.text}")
-                return None
+                return str(temp_path)
+            return None
         except Exception as e:
             print(f"Erreur download_agent_report_pdf: {e}")
             return None
 
-    # Chargement des agents
     def load_agents():
         agents = get_all_agents(token)
         agent_dropdown.options = [
@@ -94,10 +93,26 @@ def rapport_view_Admin(page: ft.Page):
         page.update()
 
         try:
-            filename = download_agent_report_pdf(token, mois, agent_id)
-            if filename:
-                message.value = f"✅ Rapport généré pour l'agent {agent_dropdown.value} : {filename}"
-                # os.startfile(filename)  # Désactivé pour le déploiement
+            temp_file = download_agent_report_pdf(token, mois, agent_id)
+            if temp_file:
+                # Déplacer vers Documents
+                agent_name = next(
+                    (opt.text for opt in agent_dropdown.options 
+                     if opt.key == agent_id), 
+                    agent_id
+                )
+                final_path = documents_path / f"rapport_{agent_name}_{mois}.pdf"
+                os.replace(temp_file, final_path)
+                
+                message.value = f"✅ Rapport sauvegardé dans : {final_path}"
+                
+                # Ouvrir le dossier (si local)
+                if platform.system() == "Windows":
+                    os.startfile(documents_path)
+                elif platform.system() == "Darwin":
+                    os.system(f"open {documents_path}")
+                elif platform.system() == "Linux":
+                    os.system(f"xdg-open {documents_path}")
             else:
                 message.value = "❌ Échec lors de la génération du rapport"
         except Exception as ex:
@@ -111,12 +126,17 @@ def rapport_view_Admin(page: ft.Page):
             ft.Row([
                 agent_dropdown,
                 mois_input,
-                ft.ElevatedButton("Générer le rapport", on_click=exporter_rapport, style=ft.ButtonStyle(
-                                                                                            padding=20,
-                                                                                            bgcolor=ft.Colors.INDIGO_600,
-                                                                                            color="white",
-                                                                                            shape=ft.RoundedRectangleBorder(radius=10),
-                                                                                        ), width=300, height=50,
+                ft.ElevatedButton(
+                    "Générer le rapport", 
+                    on_click=exporter_rapport, 
+                    style=ft.ButtonStyle(
+                        padding=20,
+                        bgcolor=ft.Colors.INDIGO_600,
+                        color="white",
+                        shape=ft.RoundedRectangleBorder(radius=10),
+                    ),
+                    width=300,
+                    height=50
                 )
             ], wrap=True, alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
             message,
@@ -125,8 +145,7 @@ def rapport_view_Admin(page: ft.Page):
         spacing=30,
         expand=True
     )
-    
-    
+
 def rapport_view_global(page: ft.Page):
     token = page.session.get("token")
     role = page.session.get("role")
@@ -135,6 +154,9 @@ def rapport_view_global(page: ft.Page):
         page.go("/")
         return
 
+    documents_path = Path.home() / "Documents"
+    documents_path.mkdir(exist_ok=True)
+
     mois_input = ft.TextField(
         label="Mois (AAAA-MM)",
         color="black",
@@ -142,20 +164,21 @@ def rapport_view_global(page: ft.Page):
         hint_text="2025-06",
         width=400
     )
-    message = ft.Text(value="", size=16, color="black")
+    message = ft.Text(value="", size=16, color=ft.Colors.BLACK)
     
     def download_global_report_pdf(token: str, mois: str):
-        """Télécharge le rapport PDF global"""
         url = f"{API_BASE}export/pdf/global/?mois={mois}"
         headers = {"Authorization": f"Token {token}"}
         
         try:
             response = requests.get(url, headers=headers)
             if response.status_code == 200:
-                filename = f"rapport_global_{mois}.pdf"
-                with open(filename, "wb") as f:
+                temp_path = Path("temp") / f"rapport_global_{mois}.pdf"
+                temp_path.parent.mkdir(exist_ok=True)
+                
+                with open(temp_path, "wb") as f:
                     f.write(response.content)
-                return os.path.abspath(filename)
+                return str(temp_path)
             return None
         except Exception as e:
             print(f"Erreur download_global_report_pdf: {e}")
@@ -173,10 +196,19 @@ def rapport_view_global(page: ft.Page):
         page.update()
 
         try:
-            filename = download_global_report_pdf(token, mois)
-            if filename:
-                message.value = f"✅ Rapport global généré : {filename}"
-                # os.startfile(filename)  # Désactivé pour le déploiement
+            temp_file = download_global_report_pdf(token, mois)
+            if temp_file:
+                final_path = documents_path / f"rapport_global_{mois}.pdf"
+                os.replace(temp_file, final_path)
+                
+                message.value = f"✅ Rapport sauvegardé dans : {final_path}"
+                
+                if platform.system() == "Windows":
+                    os.startfile(documents_path)
+                elif platform.system() == "Darwin":
+                    os.system(f"open {documents_path}")
+                elif platform.system() == "Linux":
+                    os.system(f"xdg-open {documents_path}")
             else:
                 message.value = "❌ Échec lors de la génération du rapport"
         except Exception as ex:
@@ -201,7 +233,7 @@ def rapport_view_global(page: ft.Page):
                     width=300,
                     height=50,
                 )
-            ],wrap=True, alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+            ], wrap=True, alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
             message,
         ],
         scroll=ft.ScrollMode.AUTO,

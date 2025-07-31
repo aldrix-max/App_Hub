@@ -10,14 +10,13 @@ from components.charts import *
 import webbrowser
 from datetime import datetime
 
-def admindashboard(page: Page):
+def visiondashboard(page: Page):
     # Configuration de base
-    page.title = "Dashboard Administrateur"
+    page.title = "Dashboard Visiteur"
     page.bgcolor = Colors.GREY_100
     token = page.session.get("token")
-    role = page.session.get("role")
     
-    if not token or role != "ADMIN":
+    if not token:
         page.go("/")
         return
 

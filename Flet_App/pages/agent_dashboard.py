@@ -13,6 +13,7 @@ from datetime import datetime
 def agentdashboard(page: Page):
     # Configuration de base de la page
     page.bgcolor = Colors.GREY_100  # Fond gris clair pour l'interface
+    page.title="Dashboard Agent"
     
     # Vérification de l'authentification
     token = page.session.get("token")

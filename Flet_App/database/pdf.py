@@ -1,15 +1,19 @@
 import flet as ft
-import datetime
 import os
+from pathlib import Path
 from database.api import download_summary_pdf
 import requests
-
+import platform
 
 def rapport_view(page: ft.Page):
     token = page.session.get("token")
     if not token:
         page.go("/")
         return
+
+    # Chemin vers le dossier Documents
+    documents_path = Path.home() / "Documents"
+    documents_path.mkdir(exist_ok=True)
 
     mois_input = ft.TextField(
         label="Mois (AAAA-MM)",
@@ -18,8 +22,7 @@ def rapport_view(page: ft.Page):
         hint_text="2025-06",
         width=400
     )
-    message = ft.Text(value="", size=16)
-    
+    message = ft.Text(value="", size=16, color="black")
 
     def exporter_rapport(e):
         mois = mois_input.value.strip()
@@ -32,11 +35,23 @@ def rapport_view(page: ft.Page):
         page.update()
 
         try:
-            filename = download_summary_pdf(token, mois)  # Télécharge le PDF
+            filename = download_summary_pdf(token, mois)
             if filename:
-                message.value = f"✅ Rapport généré pour {mois}"
+                # Déplacer le fichier vers Documents
+                pdf_path = documents_path / f"rapport_{mois}.pdf"
+                os.replace(filename, pdf_path)
+                
+                message.value = f"✅ Rapport sauvegardé dans : {pdf_path}"
+                
+                # Ouvrir le dossier (si local)
+                if platform.system() == "Windows":
+                    os.startfile(documents_path)
+                elif platform.system() == "Darwin":
+                    os.system(f"open {documents_path}")
+                elif platform.system() == "Linux":
+                    os.system(f"xdg-open {documents_path}")
             else:
-                message.value = "❌ Échec lors de la récupération du fichier PDF."
+                message.value = "❌ Échec lors de la génération du PDF"
         except Exception as ex:
             message.value = f"❌ Erreur : {ex}"
 
@@ -45,37 +60,43 @@ def rapport_view(page: ft.Page):
     return ft.Column(
         controls=[
             ft.Text("Générer un rapport mensuel", size=22, weight="bold", color="black"),
-            ft.Row([mois_input, ft.ElevatedButton("Télécharger le résumé", on_click=exporter_rapport,style=ft.ButtonStyle(
-            padding=20,bgcolor=ft.Colors.INDIGO_600 ,color="white",shape=ft.RoundedRectangleBorder(radius=10),),width=300,height=50,)]),
+            ft.Row([
+                mois_input, 
+                ft.ElevatedButton(
+                    "Télécharger le résumé",
+                    on_click=exporter_rapport,
+                    style=ft.ButtonStyle(
+                        padding=20,
+                        bgcolor=ft.Colors.INDIGO_600,
+                        color="white",
+                        shape=ft.RoundedRectangleBorder(radius=10),
+                    ),
+                    width=300,
+                    height=50
+                )
+            ]),
             message,
         ],
         scroll=ft.ScrollMode.AUTO,
         spacing=30
     )
-    
-def download_summary_pdf(token: str, mois: str, agent_id=None):
-    """Génère un PDF pour un mois donné, optionnellement filtré par agent"""
+
+def download_summary_pdf(token: str, mois: str):
+    """Version modifiée pour retourner le chemin temporaire"""
     base_url = "https://financial-flow.onrender.com/api/export/pdf/"
     params = f"?mois={mois}&type=resume"
-    if agent_id:
-        params += f"&agent_id={agent_id}"
-    
     headers = {"Authorization": f"Token {token}"}
     
     try:
         response = requests.get(base_url + params, headers=headers)
         if response.status_code == 200:
-            filename = f"rapport_{mois}"
-            if agent_id:
-                filename += f"_agent_{agent_id}"
-            filename += ".pdf"
+            temp_path = Path("temp") / f"rapport_{mois}.pdf"
+            temp_path.parent.mkdir(exist_ok=True)
             
-            with open(filename, "wb") as f:
+            with open(temp_path, "wb") as f:
                 f.write(response.content)
-            return os.path.abspath(filename)
+            return str(temp_path)
         return None
     except Exception as e:
         print(f"Erreur download_summary_pdf: {e}")
         return None
-
-
