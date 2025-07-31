@@ -7,8 +7,8 @@ django.setup()
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
-username = "admin"
-password = "admin123"
+username = "alves"
+password = "alves2007"
 email = "admin@example.com"
 
 if not User.objects.filter(username=username).exists():
