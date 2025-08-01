@@ -1,8 +1,5 @@
 import flet as ft
-import os
-import tempfile
 import requests
-import webbrowser
 from database.api import API_BASE
 
 def rapport_view_Admin(page: ft.Page):
@@ -33,25 +30,6 @@ def rapport_view_Admin(page: ft.Page):
             print(f"Erreur get_all_agents: {e}")
             return []
 
-    def download_agent_report_pdf(token: str, mois: str, agent_id: str):
-        """Télécharge le PDF dans un fichier temporaire"""
-        url = f"{API_BASE}export/pdf/agent/?mois={mois}&agent_id={agent_id}"
-        headers = {"Authorization": f"Token {token}"}
-        
-        try:
-            response = requests.get(url, headers=headers)
-            if response.status_code == 200:
-                temp_dir = tempfile.gettempdir()
-                temp_pdf_path = os.path.join(temp_dir, f"rapport_agent_{agent_id}_{mois}.pdf")
-                
-                with open(temp_pdf_path, "wb") as f:
-                    f.write(response.content)
-                return temp_pdf_path
-            return None
-        except Exception as e:
-            print(f"Erreur download_agent_report_pdf: {e}")
-            return None
-
     def load_agents():
         agents = get_all_agents(token)
         agent_dropdown.options = [
@@ -71,34 +49,34 @@ def rapport_view_Admin(page: ft.Page):
         width=400
     )
     message = ft.Text(value="", size=16, color="black")
+    lien_rapport = ft.TextButton(visible=False)
 
     def exporter_rapport(e):
         mois = mois_input.value.strip()
         agent_id = agent_dropdown.value
-        
+
         if not mois:
             message.value = "❌ Veuillez entrer un mois au format AAAA-MM"
+            lien_rapport.visible = False
             page.update()
             return
-            
+
         if not agent_id:
             message.value = "❌ Veuillez sélectionner un agent"
+            lien_rapport.visible = False
             page.update()
             return
 
-        message.value = "⏳ Génération du rapport en cours..."
+        message.value = "⏳ Génération du lien du rapport..."
         page.update()
 
-        try:
-            final_path = download_agent_report_pdf(token, mois, agent_id)
-            if final_path:
-                message.value = "✅ Rapport généré ! Ouverture dans le navigateur..."
-                webbrowser.open(f"file://{final_path}")
-            else:
-                message.value = "❌ Échec lors de la génération du rapport"
-        except Exception as ex:
-            message.value = f"❌ Erreur : {str(ex)}"
+        # Génère l’URL directe du PDF de l’agent
+        pdf_url = f"{API_BASE}export/pdf/agent/?mois={mois}&agent_id={agent_id}"
 
+        lien_rapport.text = "📄 Ouvrir le rapport PDF"
+        lien_rapport.url = pdf_url
+        lien_rapport.visible = True
+        message.value = "✅ Lien prêt. Cliquez ci-dessous pour ouvrir :"
         page.update()
 
     return ft.Column(
@@ -108,8 +86,8 @@ def rapport_view_Admin(page: ft.Page):
                 agent_dropdown,
                 mois_input,
                 ft.ElevatedButton(
-                    "Générer le rapport", 
-                    on_click=exporter_rapport, 
+                    "Générer le rapport",
+                    on_click=exporter_rapport,
                     style=ft.ButtonStyle(
                         padding=20,
                         bgcolor=ft.Colors.INDIGO_600,
@@ -121,6 +99,7 @@ def rapport_view_Admin(page: ft.Page):
                 )
             ], wrap=True, alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
             message,
+            lien_rapport
         ],
         scroll=ft.ScrollMode.AUTO,
         spacing=30,
@@ -130,7 +109,7 @@ def rapport_view_Admin(page: ft.Page):
 def rapport_view_global(page: ft.Page):
     token = page.session.get("token")
     role = page.session.get("role")
-    
+
     if not token or role != "ADMIN":
         page.go("/")
         return
@@ -143,47 +122,27 @@ def rapport_view_global(page: ft.Page):
         width=400
     )
     message = ft.Text(value="", size=16, color=ft.Colors.BLACK)
-    
-    def download_global_report_pdf(token: str, mois: str):
-        """Télécharge le PDF dans un fichier temporaire"""
-        url = f"{API_BASE}export/pdf/global/?mois={mois}"
-        headers = {"Authorization": f"Token {token}"}
-        
-        try:
-            response = requests.get(url, headers=headers)
-            if response.status_code == 200:
-                temp_dir = tempfile.gettempdir()
-                temp_pdf_path = os.path.join(temp_dir, f"rapport_global_{mois}.pdf")
-                
-                with open(temp_pdf_path, "wb") as f:
-                    f.write(response.content)
-                return temp_pdf_path
-            return None
-        except Exception as e:
-            print(f"Erreur download_global_report_pdf: {e}")
-            return None
+    lien_rapport = ft.TextButton(visible=False)
 
     def exporter_rapport(e):
         mois = mois_input.value.strip()
-        
+
         if not mois:
             message.value = "❌ Veuillez entrer un mois au format AAAA-MM"
+            lien_rapport.visible = False
             page.update()
             return
 
-        message.value = "⏳ Génération du rapport global en cours..."
+        message.value = "⏳ Génération du lien du rapport global..."
         page.update()
 
-        try:
-            final_path = download_global_report_pdf(token, mois)
-            if final_path:
-                message.value = "✅ Rapport généré ! Ouverture dans le navigateur..."
-                webbrowser.open(f"file://{final_path}")
-            else:
-                message.value = "❌ Échec lors de la génération du rapport"
-        except Exception as ex:
-            message.value = f"❌ Erreur : {str(ex)}"
+        # Génère l’URL directe du PDF global
+        pdf_url = f"{API_BASE}export/pdf/global/?mois={mois}"
 
+        lien_rapport.text = "📄 Ouvrir le rapport global"
+        lien_rapport.url = pdf_url
+        lien_rapport.visible = True
+        message.value = "✅ Lien prêt. Cliquez ci-dessous pour ouvrir :"
         page.update()
 
     return ft.Column(
@@ -205,6 +164,7 @@ def rapport_view_global(page: ft.Page):
                 )
             ], wrap=True, alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
             message,
+            lien_rapport
         ],
         scroll=ft.ScrollMode.AUTO,
         spacing=30,

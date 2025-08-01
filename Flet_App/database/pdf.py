@@ -1,8 +1,4 @@
 import flet as ft
-import os
-import requests
-import tempfile
-import webbrowser
 
 def rapport_view(page: ft.Page):
     token = page.session.get("token")
@@ -18,47 +14,27 @@ def rapport_view(page: ft.Page):
         width=400
     )
     message = ft.Text(value="", size=16, color="black")
-
-    def download_summary_pdf(token: str, mois: str):
-        """Télécharge le PDF dans un fichier temporaire"""
-        base_url = "https://financial-flow.onrender.com/api/export/pdf/"
-        params = f"?mois={mois}&type=resume"
-        headers = {"Authorization": f"Token {token}"}
-        
-        try:
-            response = requests.get(base_url + params, headers=headers)
-            if response.status_code == 200:
-                temp_dir = tempfile.gettempdir()
-                temp_pdf_path = os.path.join(temp_dir, f"rapport_{mois}.pdf")
-                
-                with open(temp_pdf_path, "wb") as f:
-                    f.write(response.content)
-                return temp_pdf_path
-            return None
-        except Exception as e:
-            print(f"Erreur download_summary_pdf: {e}")
-            return None
+    lien_rapport = ft.TextButton(visible=False)
 
     def exporter_rapport(e):
         mois = mois_input.value.strip()
         if not mois:
             message.value = "❌ Veuillez entrer un mois au format AAAA-MM"
+            lien_rapport.visible = False
             page.update()
             return
 
-        message.value = "⏳ Génération du rapport en cours..."
+        message.value = "⏳ Génération du lien du rapport..."
         page.update()
 
-        try:
-            final_path = download_summary_pdf(token, mois)
-            if final_path:
-                message.value = "✅ Rapport généré ! Ouverture dans le navigateur..."
-                webbrowser.open(f"file://{final_path}")
-            else:
-                message.value = "❌ Échec lors de la génération du PDF"
-        except Exception as ex:
-            message.value = f"❌ Erreur : {ex}"
+        # Génère un lien direct vers le PDF fourni par ton backend
+        pdf_url = f"https://financial-flow.onrender.com/api/export/pdf/?mois={mois}&type=resume"
 
+        # Le lien est visible et cliquable
+        lien_rapport.text = "📄 Ouvrir le rapport PDF"
+        lien_rapport.url = pdf_url
+        lien_rapport.visible = True
+        message.value = "✅ Lien prêt. Cliquez ci-dessous pour ouvrir :"
         page.update()
 
     return ft.Column(
@@ -67,7 +43,7 @@ def rapport_view(page: ft.Page):
             ft.Row([
                 mois_input, 
                 ft.ElevatedButton(
-                    "Télécharger le résumé",
+                    "Générer le lien du résumé",
                     on_click=exporter_rapport,
                     style=ft.ButtonStyle(
                         padding=20,
@@ -80,6 +56,7 @@ def rapport_view(page: ft.Page):
                 )
             ]),
             message,
+            lien_rapport
         ],
         scroll=ft.ScrollMode.AUTO,
         spacing=30
