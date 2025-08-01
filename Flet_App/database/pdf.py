@@ -1,4 +1,5 @@
 import flet as ft
+import base64
 
 def rapport_view(page: ft.Page):
     token = page.session.get("token")
@@ -14,28 +15,52 @@ def rapport_view(page: ft.Page):
         width=400
     )
     message = ft.Text(value="", size=16, color="black")
-    lien_rapport = ft.TextButton(visible=False)
+    pdf_viewer = ft.Column([], visible=False)
 
-    def exporter_rapport(e):
+    async def exporter_rapport(e):
         mois = mois_input.value.strip()
         if not mois:
             message.value = "❌ Veuillez entrer un mois au format AAAA-MM"
-            lien_rapport.visible = False
-            page.update()
+            await page.update_async()
             return
 
-        message.value = "⏳ Génération du lien du rapport..."
-        page.update()
+        message.value = "⏳ Génération du rapport en cours..."
+        pdf_viewer.visible = False
+        await page.update_async()
 
-        # Génère un lien direct vers le PDF fourni par ton backend
-        pdf_url = f"https://financial-flow.onrender.com/api/export/pdf/?mois={mois}&type=resume"
-
-        # Le lien est visible et cliquable
-        lien_rapport.text = "📄 Ouvrir le rapport PDF"
-        lien_rapport.url = pdf_url
-        lien_rapport.visible = True
-        message.value = "✅ Lien prêt. Cliquez ci-dessous pour ouvrir :"
-        page.update()
+        try:
+            # Télécharger le PDF via l'API
+            pdf_url = f"https://financial-flow.onrender.com/api/export/pdf/?mois={mois}&type=resume"
+            headers = {"Authorization": f"Token {token}"}
+            
+            response = await page.http_client.get_async(pdf_url, headers=headers)
+            
+            if response.status_code == 200:
+                pdf_bytes = await response.read()
+                pdf_b64 = base64.b64encode(pdf_bytes).decode('utf-8')
+                
+                # Créer un lien de téléchargement
+                download_button = ft.ElevatedButton(
+                    "📄 Télécharger le rapport",
+                    on_click=lambda _: page.launch_url(
+                        f"data:application/pdf;base64,{pdf_b64}"
+                    ),
+                    style=ft.ButtonStyle(
+                        bgcolor=ft.Colors.INDIGO_100,
+                        color=ft.Colors.INDIGO_800
+                    )
+                )
+                
+                pdf_viewer.controls = [download_button]
+                pdf_viewer.visible = True
+                message.value = "✅ Rapport généré avec succès"
+            else:
+                message.value = f"❌ Erreur: {response.status_code} - {response.text}"
+                
+        except Exception as ex:
+            message.value = f"❌ Erreur lors de la génération: {str(ex)}"
+        
+        await page.update_async()
 
     return ft.Column(
         controls=[
@@ -43,7 +68,7 @@ def rapport_view(page: ft.Page):
             ft.Row([
                 mois_input, 
                 ft.ElevatedButton(
-                    "Générer le lien du résumé",
+                    "Générer le rapport",
                     on_click=exporter_rapport,
                     style=ft.ButtonStyle(
                         padding=20,
@@ -56,7 +81,7 @@ def rapport_view(page: ft.Page):
                 )
             ]),
             message,
-            lien_rapport
+            pdf_viewer
         ],
         scroll=ft.ScrollMode.AUTO,
         spacing=30
