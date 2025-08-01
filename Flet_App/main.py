@@ -6,6 +6,10 @@ from pages.vision_dashboard import visiondashboard
 
 
 def main(page: ft.Page):
+    
+    page.window_title = "Financial Flow"  # Titre de la fenêtre
+    page.window_window_icon = "assets/logo.png"  # Chemin vers votre icône
+    
     def route_change(e):
         page.views.clear()
         if page.route == "/admin-dashboard":

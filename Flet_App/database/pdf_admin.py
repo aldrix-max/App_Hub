@@ -1,21 +1,17 @@
 import flet as ft
 import os
-from pathlib import Path
+import tempfile
 import requests
+import webbrowser
 from database.api import API_BASE
-import platform
 
 def rapport_view_Admin(page: ft.Page):
     token = page.session.get("token")
     role = page.session.get("role")
-    
+
     if not token or role != "ADMIN":
         page.go("/")
         return
-
-    # Chemin vers le dossier Documents
-    documents_path = Path.home() / "Documents"
-    documents_path.mkdir(exist_ok=True)
 
     agent_dropdown = ft.Dropdown(
         label="Agent",
@@ -38,19 +34,19 @@ def rapport_view_Admin(page: ft.Page):
             return []
 
     def download_agent_report_pdf(token: str, mois: str, agent_id: str):
+        """Télécharge le PDF dans un fichier temporaire"""
         url = f"{API_BASE}export/pdf/agent/?mois={mois}&agent_id={agent_id}"
         headers = {"Authorization": f"Token {token}"}
         
         try:
             response = requests.get(url, headers=headers)
             if response.status_code == 200:
-                # Sauvegarder directement dans Documents au lieu de temp
-                temp_path = documents_path / f"rapport_agent_{agent_id}_{mois}.pdf"
-                temp_path.parent.mkdir(exist_ok=True)
+                temp_dir = tempfile.gettempdir()
+                temp_pdf_path = os.path.join(temp_dir, f"rapport_agent_{agent_id}_{mois}.pdf")
                 
-                with open(temp_path, "wb") as f:
+                with open(temp_pdf_path, "wb") as f:
                     f.write(response.content)
-                return str(temp_path)
+                return temp_pdf_path
             return None
         except Exception as e:
             print(f"Erreur download_agent_report_pdf: {e}")
@@ -63,7 +59,7 @@ def rapport_view_Admin(page: ft.Page):
             for agent in agents
         ]
         page.update()
-    
+
     load_agents()
 
     mois_input = ft.TextField(
@@ -75,7 +71,7 @@ def rapport_view_Admin(page: ft.Page):
         width=400
     )
     message = ft.Text(value="", size=16, color="black")
-    
+
     def exporter_rapport(e):
         mois = mois_input.value.strip()
         agent_id = agent_dropdown.value
@@ -96,20 +92,8 @@ def rapport_view_Admin(page: ft.Page):
         try:
             final_path = download_agent_report_pdf(token, mois, agent_id)
             if final_path:
-                agent_name = next(
-                    (opt.text for opt in agent_dropdown.options 
-                     if opt.key == agent_id), 
-                    agent_id
-                )
-                message.value = f"✅ Rapport sauvegardé dans : {final_path}"
-                
-                # Ouvrir le dossier (si local)
-                if platform.system() == "Windows":
-                    os.startfile(documents_path)
-                elif platform.system() == "Darwin":
-                    os.system(f"open {documents_path}")
-                elif platform.system() == "Linux":
-                    os.system(f"xdg-open {documents_path}")
+                message.value = "✅ Rapport généré ! Ouverture dans le navigateur..."
+                webbrowser.open(f"file://{final_path}")
             else:
                 message.value = "❌ Échec lors de la génération du rapport"
         except Exception as ex:
@@ -151,9 +135,6 @@ def rapport_view_global(page: ft.Page):
         page.go("/")
         return
 
-    documents_path = Path.home() / "Documents"
-    documents_path.mkdir(exist_ok=True)
-
     mois_input = ft.TextField(
         label="Mois (AAAA-MM)",
         color="black",
@@ -164,19 +145,19 @@ def rapport_view_global(page: ft.Page):
     message = ft.Text(value="", size=16, color=ft.Colors.BLACK)
     
     def download_global_report_pdf(token: str, mois: str):
+        """Télécharge le PDF dans un fichier temporaire"""
         url = f"{API_BASE}export/pdf/global/?mois={mois}"
         headers = {"Authorization": f"Token {token}"}
         
         try:
             response = requests.get(url, headers=headers)
             if response.status_code == 200:
-                # Sauvegarder directement dans Documents au lieu de temp
-                temp_path = documents_path / f"rapport_global_{mois}.pdf"
-                temp_path.parent.mkdir(exist_ok=True)
+                temp_dir = tempfile.gettempdir()
+                temp_pdf_path = os.path.join(temp_dir, f"rapport_global_{mois}.pdf")
                 
-                with open(temp_path, "wb") as f:
+                with open(temp_pdf_path, "wb") as f:
                     f.write(response.content)
-                return str(temp_path)
+                return temp_pdf_path
             return None
         except Exception as e:
             print(f"Erreur download_global_report_pdf: {e}")
@@ -196,14 +177,8 @@ def rapport_view_global(page: ft.Page):
         try:
             final_path = download_global_report_pdf(token, mois)
             if final_path:
-                message.value = f"✅ Rapport sauvegardé dans : {final_path}"
-                
-                if platform.system() == "Windows":
-                    os.startfile(documents_path)
-                elif platform.system() == "Darwin":
-                    os.system(f"open {documents_path}")
-                elif platform.system() == "Linux":
-                    os.system(f"xdg-open {documents_path}")
+                message.value = "✅ Rapport généré ! Ouverture dans le navigateur..."
+                webbrowser.open(f"file://{final_path}")
             else:
                 message.value = "❌ Échec lors de la génération du rapport"
         except Exception as ex:
