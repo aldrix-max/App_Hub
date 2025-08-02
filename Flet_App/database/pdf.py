@@ -39,10 +39,11 @@ def rapport_view(page: ft.Page):
 
         try:
             # Télécharger le PDF via l'API
-            pdf_url = f"https://financial-flow.onrender.com/api/export/pdf/?mois={mois}&type=resume"
+            
             headers = {"Authorization": f"Token {token}"}
             
             response = requests.get(pdf_url, headers=headers)
+            pdf_url = f"https://financial-flow.onrender.com/api/export/pdf/?mois={mois}&type=resume"
             
             if response.status_code == 200:
                 pdf_bytes = response.content
