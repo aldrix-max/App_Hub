@@ -348,7 +348,7 @@ def budget_resume(request):
 # EXPORT PDF DES TRANSACTIONS
 # =========================
 @api_view(['GET'])
-@permission_classes([AllowAny])  # <- on autorise tout le monde à appeler, vérification manuelle ensuite
+@permission_classes([IsAuthenticated])  # <- on autorise tout le monde à appeler, vérification manuelle ensuite
 def export_pdf_operations(request):
     mois = request.query_params.get('mois')  # ex: 2025-07
     type_rapport = request.query_params.get('type', 'liste')  # "liste" ou "resume"
