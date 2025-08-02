@@ -1,5 +1,5 @@
 # --- IMPORTS ---
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import *
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework import viewsets, permissions
@@ -348,13 +348,23 @@ def budget_resume(request):
 # EXPORT PDF DES TRANSACTIONS
 # =========================
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])  # <- on autorise tout le monde à appeler, vérification manuelle ensuite
 def export_pdf_operations(request):
     mois = request.query_params.get('mois')  # ex: 2025-07
     type_rapport = request.query_params.get('type', 'liste')  # "liste" ou "resume"
+    token_key = request.query_params.get('token')  # <- on récupère le token dans l'URL
 
     if not mois:
         return Response({"error": "Le paramètre 'mois' est requis"}, status=400)
+
+    if not token_key:
+        return Response({"error": "Token requis dans l'URL"}, status=401)
+
+    try:
+        token = Token.objects.get(key=token_key)
+        user = token.user
+    except Token.DoesNotExist:
+        return Response({"error": "Token invalide"}, status=401)
 
     try:
         date_obj = datetime.strptime(mois, "%Y-%m")
@@ -362,9 +372,11 @@ def export_pdf_operations(request):
         return Response({"error": "Format de date invalide. Utilisez AAAA-MM"}, status=400)
 
     if type_rapport == "resume":
-        buffer = generate_monthly_summary_pdf(mois, request.user.username)
+        buffer = generate_monthly_summary_pdf(mois, user.username)
         return FileResponse(buffer, as_attachment=True, filename=f"resume_{mois}.pdf")
 
+    # Si type = "liste"
+    from .models import Transaction  # adapte selon ton app
     operations = Transaction.objects.filter(
         date__year=date_obj.year,
         date__month=date_obj.month
@@ -383,7 +395,6 @@ def export_pdf_operations(request):
 
     buffer = generate_monthly_summary_pdf(data, title=f"Rapport des opérations – {mois}")
     return FileResponse(buffer, as_attachment=True, filename=f"rapport_{mois}.pdf")
-
 
 #=====================================
 #=====================================
