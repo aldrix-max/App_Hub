@@ -439,7 +439,7 @@ def admindashboard(page: Page):
             width= 800,
             padding=30,
             bgcolor="white",
-            content=Column([rapport_view_Admin(page),Divider(1), rapport_view_global(page)],
+            content=Column([rapport_view_Admin(page)],
                            spacing=20, expand=True, alignment=MainAxisAlignment.CENTER, horizontal_alignment=CrossAxisAlignment.STRETCH),
             alignment=alignment.center)
     # --- Vue Management ---
