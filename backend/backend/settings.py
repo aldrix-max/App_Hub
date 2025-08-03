@@ -51,6 +51,7 @@ MIDDLEWARE = [
 
 # Configuration CORS (⚠️ À restreindre en production !)
 CORS_ALLOW_ALL_ORIGINS = True  # Autorise toutes les origines (développement seulement)
+CORS_ALLOW_CREDENTIALS = True  # Autorise les cookies et les headers d'authentification
 # Pour éviter l'erreur CSRF sur Render
 CSRF_TRUSTED_ORIGINS = ['https://financial-flow.onrender.com']
 

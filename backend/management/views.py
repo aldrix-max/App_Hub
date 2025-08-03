@@ -398,39 +398,44 @@ def export_pdf_operations(request):
 
 
 # CREATION D'UNE AUTRE FONCTION POUR LES PDF
-from io import BytesIO
-from django.http import FileResponse
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def generate_pdf(request):
     """
-    Génère un PDF immédiatement sans le stocker
-    Exemple d'URL: /api/generate-pdf/?mois=2023-10
+    Génère un PDF avec les transactions du mois
     """
     mois = request.GET.get('mois', '')
+    token_key = request.GET.get('token')
     
-    # 1. Crée un buffer mémoire pour le PDF
-    buffer = BytesIO()
+    # Validation du token
+    try:
+        token = Token.objects.get(key=token_key)
+        user = token.user
+    except Token.DoesNotExist:
+        return Response({"error": "Token invalide"}, status=401)
+
+    # Validation du format de date
+    try:
+        datetime.strptime(mois, "%Y-%m")
+    except ValueError:
+        return Response({"error": "Format de date invalide. Utilisez AAAA-MM"}, status=400)
+
+    # Utilisation de votre fonction existante
+    buffer = generate_monthly_summary_pdf(mois, user.username)
     
-    # 2. Utilise ta fonction existante de génération PDF
-    # (Remplace ceci par ta logique réelle)
-    from reportlab.pdfgen import canvas
-    p = canvas.Canvas(buffer)
-    p.drawString(100, 100, f"Rapport du mois: {mois}")
-    p.showPage()
-    p.save()
-    
-    # 3. Retourne le PDF directement
-    buffer.seek(0)
-    return FileResponse(
+    # Retour de la réponse
+    response = FileResponse(
         buffer,
-        as_attachment=False,  # = affichage dans le navigateur
+        as_attachment=False,  # Prévisualisation dans le navigateur
         filename=f"rapport_{mois}.pdf",
         content_type='application/pdf'
     )
+    
+    # Headers CORS
+    response['Access-Control-Allow-Origin'] = '*'
+    response['Access-Control-Expose-Headers'] = 'Content-Disposition'
+    
+    return response
 #=====================================
 #=====================================
 # SECTION ADMINISTRATION
