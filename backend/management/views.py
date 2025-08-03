@@ -399,7 +399,7 @@ def export_pdf_operations(request):
 
 # CREATION D'UNE AUTRE FONCTION POUR LES PDF
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def generate_pdf(request):
     """
     Génère un PDF avec les transactions du mois
