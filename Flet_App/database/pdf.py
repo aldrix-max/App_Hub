@@ -2,6 +2,7 @@ import flet as ft
 
 def rapport_view(page: ft.Page):
     token = page.session.get("token")
+    print(token)
     
     # Composants UI
     mois_input = ft.TextField(
