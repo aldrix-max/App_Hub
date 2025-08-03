@@ -661,3 +661,41 @@ def export_global_report_pdf(request):
         
     except Exception as e:
         return Response({"error": f"Erreur lors de la génération du rapport: {str(e)}"}, status=500)
+    
+    
+    
+# generaation du pdf global
+# =========================
+# GENERATION PDF GLOBAL ADMIN - Pour les administrateurs
+# =========================
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def generate_global_pdf(request):
+    """
+    Génère un rapport PDF global pour les administrateurs
+    """
+    if not request.user.is_superuser:
+        return Response({"error": "Accès non autorisé"}, status=403)
+
+    mois = request.GET.get('mois', '')
+    
+    # Validation du format de date
+    try:
+        datetime.strptime(mois, "%Y-%m")
+    except ValueError:
+        return Response({"error": "Format de date invalide. Utilisez AAAA-MM"}, status=400)
+
+    try:
+        # Génération du rapport global
+        buffer = generate_global_report_pdf(mois)
+        filename = f"rapport_global_{mois}.pdf"
+            
+        return FileResponse(
+            buffer,
+            as_attachment=False,  # Prévisualisation dans le navigateur
+            filename=filename,
+            content_type='application/pdf'
+        )
+        
+    except Exception as e:
+        return Response({"error": f"Erreur lors de la génération: {str(e)}"}, status=500)

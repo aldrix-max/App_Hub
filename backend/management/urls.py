@@ -28,4 +28,5 @@ urlpatterns = [
     path("export/pdf/agent/", export_pdf_agent, name="export-pdf-agent"),
     path("export/pdf/global/", export_global_report_pdf, name="export-pdf-global"),
     path('generate-pdf/', generate_pdf, name='generate_pdf'),
+    path('generate-global-pdf/', generate_global_pdf, name='generate_global_pdf'),
 ]
