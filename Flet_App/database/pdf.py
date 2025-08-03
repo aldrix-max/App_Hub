@@ -16,7 +16,7 @@ def rapport_view(page: ft.Page):
             return
         
         # Construction de l'URL avec le token
-        pdf_url = f"https://financial-flow.onrender.com/generate-pdf/?mois={mois}"
+        pdf_url = f"https://financial-flow.onrender.com/api/generate-pdf/?mois={mois}&token={page.session.get('token')}"
         
         # Solution 1: Ouverture dans un nouvel onglet (recommandé)
         page.launch_url(pdf_url)
