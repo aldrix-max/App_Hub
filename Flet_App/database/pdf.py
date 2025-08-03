@@ -7,12 +7,14 @@ def rapport_view(page: ft.Page):
     # Composants UI
     mois_input = ft.TextField(
         label="Mois (AAAA-MM)", 
+        label_style=ft.TextStyle(color="black"),
         width=300,
         hint_text="Ex: 2025-07",
         keyboard_type="text"
     )
-    message = ft.Text()
-    generate_btn = ft.ElevatedButton("Générer le PDF")
+    message = ft.Text("", size=14)
+    generate_btn = ft.ElevatedButton("Générer le PDF",width=350, color="white", bgcolor=ft.Colors.INDIGO_600,
+                               style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=2)))
     
     def generate_pdf(e):
         mois = mois_input.value.strip()
@@ -46,11 +48,12 @@ def rapport_view(page: ft.Page):
     return ft.Column(
         controls=[
             ft.Text("Génération de rapport PDF", size=20, weight="bold"),
-            mois_input,
-            generate_btn,
+            ft.Row([ mois_input,
+            generate_btn,], spacing= 20),
             message
         ],
         spacing=20,
         horizontal_alignment="center",
+        alignment=ft.MainAxisAlignment.CENTER,
         width=400
     )
