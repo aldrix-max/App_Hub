@@ -106,3 +106,4 @@ class BudgetMensuel(models.Model):
 
     def __str__(self):
         return f"Budget {self.mois} - {self.utilisateur.username}"
+    

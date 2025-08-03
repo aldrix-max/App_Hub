@@ -52,7 +52,7 @@ MIDDLEWARE = [
 # Configuration CORS (⚠️ À restreindre en production !)
 CORS_ALLOW_ALL_ORIGINS = True  # Autorise toutes les origines (développement seulement)
 # Pour éviter l'erreur CSRF sur Render
-CSRF_TRUSTED_ORIGINS = ['financial-flow.onrender.com']
+CSRF_TRUSTED_ORIGINS = ['https://financial-flow.onrender.com']
 
 # Configuration des URLs
 ROOT_URLCONF = 'backend.urls'  # Fichier racine des URLs

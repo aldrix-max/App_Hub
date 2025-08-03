@@ -396,6 +396,41 @@ def export_pdf_operations(request):
     buffer = generate_monthly_summary_pdf(data, title=f"Rapport des opérations – {mois}")
     return FileResponse(buffer, as_attachment=True, filename=f"rapport_{mois}.pdf")
 
+
+# CREATION D'UNE AUTRE FONCTION POUR LES PDF
+from io import BytesIO
+from django.http import FileResponse
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def generate_pdf(request):
+    """
+    Génère un PDF immédiatement sans le stocker
+    Exemple d'URL: /api/generate-pdf/?mois=2023-10
+    """
+    mois = request.GET.get('mois', '')
+    
+    # 1. Crée un buffer mémoire pour le PDF
+    buffer = BytesIO()
+    
+    # 2. Utilise ta fonction existante de génération PDF
+    # (Remplace ceci par ta logique réelle)
+    from reportlab.pdfgen import canvas
+    p = canvas.Canvas(buffer)
+    p.drawString(100, 100, f"Rapport du mois: {mois}")
+    p.showPage()
+    p.save()
+    
+    # 3. Retourne le PDF directement
+    buffer.seek(0)
+    return FileResponse(
+        buffer,
+        as_attachment=False,  # = affichage dans le navigateur
+        filename=f"rapport_{mois}.pdf",
+        content_type='application/pdf'
+    )
 #=====================================
 #=====================================
 # SECTION ADMINISTRATION
