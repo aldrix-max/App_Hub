@@ -36,7 +36,7 @@ def rapport_view_Admin(page: ft.Page):
             return
 
         # Construction de l'URL
-        pdf_url = f"/api/generate-global-pdf/?mois={mois}&token={token}"
+        pdf_url = f"https://financial-flow.onrender.com/api/generate-global-pdf/?mois={mois}&token={token}"
 
         # Ouverture dans nouvel onglet
         page.launch_url(
